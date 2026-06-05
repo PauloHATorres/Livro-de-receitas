@@ -1,0 +1,236 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f6f3ee;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #333;
+}
+
+.app {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.topo {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.topo h1 {
+  color: #8b4513;
+  margin-bottom: 10px;
+}
+
+.topo p {
+  color: #666;
+}
+
+.acoes {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.acoes input {
+  flex: 1;
+  min-width: 250px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+#btnNovaReceita {
+  background: #8b4513;
+  color: white;
+  padding: 12px 20px;
+  font-weight: bold;
+}
+
+.lista-receitas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.receita-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  transition: .2s;
+  cursor: pointer;
+}
+
+.receita-card:hover {
+  transform: translateY(-4px);
+}
+
+.receita-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.receita-info {
+  padding: 15px;
+}
+
+.receita-info h3 {
+  margin-bottom: 10px;
+  color: #8b4513;
+}
+
+.receita-info p {
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.tag {
+  display: inline-block;
+  background: #f1e6d8;
+  color: #8b4513;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.escondido {
+  display: none;
+}
+
+.modal-conteudo {
+  background: white;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 20px;
+  padding: 25px;
+  position: relative;
+}
+
+.fechar {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 35px;
+  height: 35px;
+  font-size: 22px;
+  background: #eee;
+}
+
+.fechar:hover {
+  background: #ddd;
+}
+
+#formReceita {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+#formReceita button {
+  background: #8b4513;
+  color: white;
+  padding: 14px;
+  font-weight: bold;
+}
+
+.receita-detalhe img {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.receita-detalhe h2 {
+  color: #8b4513;
+  margin-bottom: 10px;
+}
+
+.receita-detalhe h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #8b4513;
+}
+
+.receita-detalhe p {
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.favorita {
+  color: #e6a100;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .acoes {
+    flex-direction: column;
+  }
+
+  #btnNovaReceita {
+    width: 100%;
+  }
+
+  .modal-conteudo {
+    padding: 20px;
+  }
+}
+
+.sem-foto {
+  height: 180px;
+  background: #f1e6d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+
+.btn-editar {
+  margin-top: 20px;
+  background: #8b4513;
+  color: white;
+  padding: 12px 18px;
+  font-weight: bold;
+  width: 100%;
+}
+
