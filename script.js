@@ -2,9 +2,18 @@ const API_URL = "https://script.google.com/macros/s/AKfycbweuT445Xa1D77iz_DPaf4e
 
 let receitas = [];
 let receitaEditando = null;
+let mostrandoTodasFavoritas = false;
 
 const listaReceitas = document.getElementById("listaReceitas");
+const listaFavoritas = document.getElementById("listaFavoritas");
+const listaBusca = document.getElementById("listaBusca");
+
+const resultadoBusca = document.getElementById("resultadoBusca");
+const secaoFavoritas = document.getElementById("secaoFavoritas");
+const secaoRecentes = document.getElementById("secaoRecentes");
+
 const busca = document.getElementById("busca");
+const btnVerTodasFavoritas = document.getElementById("btnVerTodasFavoritas");
 
 const btnFiltros = document.getElementById("btnFiltros");
 const painelFiltros = document.getElementById("painelFiltros");
@@ -22,7 +31,8 @@ const formReceita = document.getElementById("formReceita");
 
 async function carregarReceitas() {
   try {
-    listaReceitas.innerHTML = "<p>Carregando receitas...</p>";
+    listaFavoritas.innerHTML = "<p class='mensagem-lista'>Carregando favoritas...</p>";
+    listaReceitas.innerHTML = "<p class='mensagem-lista'>Carregando receitas...</p>";
 
     const resposta = await fetch(`${API_URL}?action=listar`);
     const dados = await resposta.json();
@@ -31,91 +41,284 @@ async function carregarReceitas() {
     aplicarFiltros();
   } catch (erro) {
     console.error(erro);
-    listaReceitas.innerHTML = "<p>Erro ao carregar receitas.</p>";
+    listaFavoritas.innerHTML = "<p class='mensagem-lista'>Erro ao carregar favoritas.</p>";
+    listaReceitas.innerHTML = "<p class='mensagem-lista'>Erro ao carregar receitas.</p>";
   }
 }
 
 function aplicarFiltros() {
-  const termo = busca.value.toLowerCase();
+  const termo = busca.value.toLowerCase().trim();
   const favoritaSelecionada = filtroFavorita.value;
   const avaliacaoSelecionada = Number(filtroAvaliacao.value || 0);
 
-  const filtradas = receitas.filter((receita) => {
-    const titulo = String(receita.Título || "").toLowerCase();
-    const categorias = String(receita.Categorias || "").toLowerCase();
+  const temFiltroAtivo =
+    termo ||
+    favoritaSelecionada ||
+    avaliacaoSelecionada;
 
-    const passaBusca =
-      titulo.includes(termo) ||
-      categorias.includes(termo);
+  if (temFiltroAtivo) {
+    const filtradas = receitas.filter((receita) => {
+      const titulo = String(receita.Título || "").toLowerCase();
+      const categorias = String(receita.Categorias || "").toLowerCase();
+      const ingredientes = String(receita.Ingredientes || "").toLowerCase();
 
-    const passaFavorita =
-      !favoritaSelecionada ||
-      receita.Favorita === favoritaSelecionada;
+      const passaBusca =
+        titulo.includes(termo) ||
+        categorias.includes(termo) ||
+        ingredientes.includes(termo);
 
-    const avaliacaoReceita = Number(receita.Avaliação || 0);
+      const passaFavorita =
+        !favoritaSelecionada || receita.Favorita === favoritaSelecionada;
 
-    const passaAvaliacao =
-      !avaliacaoSelecionada ||
-      avaliacaoReceita >= avaliacaoSelecionada;
+      const avaliacaoReceita = Number(receita.Avaliação || 0);
 
-    return passaBusca && passaFavorita && passaAvaliacao;
-  });
+      const passaAvaliacao =
+        !avaliacaoSelecionada || avaliacaoReceita >= avaliacaoSelecionada;
 
-  mostrarReceitas(filtradas);
+      return passaBusca && passaFavorita && passaAvaliacao;
+    });
+
+    mostrarResultadoBusca(filtradas);
+    return;
+  }
+
+  resultadoBusca.classList.add("escondido");
+  secaoFavoritas.classList.remove("escondido");
+  secaoRecentes.classList.remove("escondido");
+
+  mostrarFavoritas();
+  mostrarRecentes();
 }
 
-function mostrarReceitas(lista) {
-  if (lista.length === 0) {
-    listaReceitas.innerHTML = "<p>Nenhuma receita encontrada.</p>";
+function mostrarFavoritas() {
+  const favoritas = receitas.filter(receita => receita.Favorita === "Sim");
+
+  const lista = mostrandoTodasFavoritas
+    ? favoritas
+    : favoritas.slice(0, 3);
+
+  if (favoritas.length === 0) {
+    listaFavoritas.innerHTML = "<p class='mensagem-lista'>Nenhuma receita favorita ainda.</p>";
+    btnVerTodasFavoritas.classList.add("escondido");
+    return;
+  }
+
+  btnVerTodasFavoritas.classList.toggle("escondido", favoritas.length <= 3);
+  btnVerTodasFavoritas.textContent = mostrandoTodasFavoritas ? "Mostrar menos ›" : "Ver todas ›";
+
+  listaFavoritas.innerHTML = "";
+
+  lista.forEach((receita) => {
+    listaFavoritas.appendChild(criarCardFavorita(receita));
+  });
+}
+
+function mostrarRecentes() {
+  const recentes = [...receitas]
+    .sort((a, b) => obterDataReceita(b) - obterDataReceita(a))
+    .slice(0, 10);
+
+  if (recentes.length === 0) {
+    listaReceitas.innerHTML = "<p class='mensagem-lista'>Nenhuma receita cadastrada ainda.</p>";
     return;
   }
 
   listaReceitas.innerHTML = "";
 
-  lista.forEach((receita) => {
-    const card = document.createElement("article");
-    card.className = "receita-card";
+  recentes.forEach((receita) => {
+    listaReceitas.appendChild(criarItemRecente(receita));
+  });
+}
 
-    card.innerHTML = `
+function mostrarResultadoBusca(lista) {
+  resultadoBusca.classList.remove("escondido");
+  secaoFavoritas.classList.add("escondido");
+  secaoRecentes.classList.add("escondido");
+
+  if (lista.length === 0) {
+    listaBusca.innerHTML = "<p class='mensagem-lista'>Nenhuma receita encontrada.</p>";
+    return;
+  }
+
+  listaBusca.innerHTML = "";
+
+  lista.forEach((receita) => {
+    listaBusca.appendChild(criarCardFavorita(receita));
+  });
+}
+
+function criarCardFavorita(receita) {
+  const card = document.createElement("article");
+  card.className = "receita-card";
+
+  const favorita = receita.Favorita === "Sim";
+
+  card.innerHTML = `
+    <div class="card-foto">
       ${
         receita.Foto
           ? `<img src="${receita.Foto}" alt="${receita.Título || "Receita"}">`
           : `<div class="sem-foto">🍽️</div>`
       }
 
-      <div class="receita-info">
-        <h3>${receita.Título || "Sem título"}</h3>
-        <p>${receita.Favorita === "Sim" ? "⭐ Favorita" : ""}</p>
-        <p>⏱️ ${receita["Tempo Medio"] || "Tempo não informado"}</p>
-        <p>🍽️ ${receita.Rendimento || "Rendimento não informado"}</p>
-        <p>${"⭐".repeat(Number(receita.Avaliação) || 0)}</p>
-        <span class="tag">${receita.Categorias || "Sem categoria"}</span>
-      </div>
-    `;
+      <button 
+        class="btn-favorito ${favorita ? "ativo" : ""}" 
+        onclick="alternarFavorito(event, '${receita.ID}')"
+        title="Favoritar receita"
+        type="button"
+      >
+        ${favorita ? "♥" : "♡"}
+      </button>
+    </div>
 
-    card.addEventListener("click", () => abrirReceita(receita));
-    listaReceitas.appendChild(card);
-  });
+    <div class="receita-info">
+      <h3>${receita.Título || "Sem título"}</h3>
+      <p>◷ ${receita["Tempo Medio"] || "Tempo não informado"}</p>
+      ${criarTags(receita.Categorias)}
+    </div>
+  `;
+
+  card.addEventListener("click", () => abrirReceita(receita));
+  return card;
+}
+
+function criarItemRecente(receita) {
+  const item = document.createElement("article");
+  item.className = "receita-recente";
+
+  const favorita = receita.Favorita === "Sim";
+  const descricao = receita.Observações || receita.Categorias || "Receita guardada com carinho.";
+
+  item.innerHTML = `
+    ${
+      receita.Foto
+        ? `<img src="${receita.Foto}" alt="${receita.Título || "Receita"}">`
+        : `<div class="sem-foto sem-foto-recente">🍽️</div>`
+    }
+
+    <div class="recente-conteudo">
+      <h3>${receita.Título || "Sem título"}</h3>
+      <p>${descricao}</p>
+    </div>
+
+    <div class="recente-info">
+      <span>◷ ${receita["Tempo Medio"] || "—"}</span>
+
+      <button 
+        class="btn-favorito btn-favorito-recente ${favorita ? "ativo" : ""}" 
+        onclick="alternarFavorito(event, '${receita.ID}')"
+        title="Favoritar receita"
+        type="button"
+      >
+        ${favorita ? "♥" : "♡"}
+      </button>
+    </div>
+  `;
+
+  item.addEventListener("click", () => abrirReceita(receita));
+  return item;
+}
+
+function obterDataReceita(receita) {
+  const possiveisDatas = [
+    receita["Data Atualização"],
+    receita["Data Cadastro"],
+    receita["Data"],
+    receita["Criado em"]
+  ];
+
+  for (const data of possiveisDatas) {
+    if (data) {
+      const valor = new Date(data).getTime();
+      if (!Number.isNaN(valor)) return valor;
+    }
+  }
+
+  return 0;
+}
+
+function criarTags(categorias) {
+  if (!categorias) {
+    return `<span class="tag">Sem categoria</span>`;
+  }
+
+  return String(categorias)
+    .split(",")
+    .map(categoria => categoria.trim())
+    .filter(categoria => categoria)
+    .map(categoria => `<span class="tag">${categoria}</span>`)
+    .join("");
+}
+
+async function alternarFavorito(event, id) {
+  event.stopPropagation();
+
+  const receita = receitas.find(r => r.ID === id);
+
+  if (!receita) {
+    alert("Receita não encontrada.");
+    return;
+  }
+
+  const valorAntigo = receita.Favorita;
+  const novoValor = receita.Favorita === "Sim" ? "Não" : "Sim";
+
+  receita.Favorita = novoValor;
+  aplicarFiltros();
+
+  try {
+    const resposta = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "favoritar",
+        id: id,
+        favorita: novoValor
+      })
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.status !== "ok") {
+      receita.Favorita = valorAntigo;
+      aplicarFiltros();
+      alert("Erro ao atualizar favorito: " + dados.mensagem);
+    }
+  } catch (erro) {
+    console.error(erro);
+    receita.Favorita = valorAntigo;
+    aplicarFiltros();
+    alert("Erro ao conectar com a planilha.");
+  }
 }
 
 function abrirReceita(receita) {
+  const avaliacao = Number(receita.Avaliação || 0);
+  const estrelas = avaliacao > 0 ? "★".repeat(avaliacao) : "Não informada";
+
   detalhesReceita.innerHTML = `
     <div class="receita-detalhe">
       ${
         receita.Foto
           ? `<img src="${receita.Foto}" alt="${receita.Título || "Receita"}">`
-          : ""
+          : `<div class="sem-foto detalhe-sem-foto">🍽️</div>`
       }
 
       <h2>${receita.Título || "Sem título"}</h2>
 
-      <p class="favorita">${receita.Favorita === "Sim" ? "⭐ Receita favorita" : ""}</p>
+      ${
+        receita.Favorita === "Sim"
+          ? `<p class="favorita">♥ Receita favorita</p>`
+          : ""
+      }
 
-      <p><strong>⏱️ Tempo:</strong> ${receita["Tempo Medio"] || "Não informado"}</p>
-      <p><strong>🍽️ Rendimento:</strong> ${receita.Rendimento || "Não informado"}</p>
-      <p><strong>🏷️ Categorias:</strong> ${receita.Categorias || "Sem categoria"}</p>
-      <p><strong>✍️ Origem/Autor:</strong> ${receita["Origem/Autor"] || "Não informado"}</p>
-      <p><strong>⭐ Avaliação:</strong> ${"⭐".repeat(Number(receita.Avaliação) || 0)}</p>
+      <div class="detalhes-grid">
+        <p><strong>Tempo:</strong><br>${receita["Tempo Medio"] || "Não informado"}</p>
+        <p><strong>Rendimento:</strong><br>${receita.Rendimento || "Não informado"}</p>
+        <p><strong>Avaliação:</strong><br>${estrelas}</p>
+        <p><strong>Origem/Autor:</strong><br>${receita["Origem/Autor"] || "Não informado"}</p>
+      </div>
+
+      <p><strong>Categorias:</strong> ${receita.Categorias || "Sem categoria"}</p>
 
       <h3>Ingredientes</h3>
       <p>${formatarTexto(receita.Ingredientes)}</p>
@@ -127,7 +330,7 @@ function abrirReceita(receita) {
       <p>${formatarTexto(receita.Observações || "Sem observações")}</p>
 
       <button class="btn-editar" onclick="abrirFormularioEdicao('${receita.ID}')">
-        ✏️ Editar Receita
+        Editar Receita
       </button>
     </div>
   `;
@@ -197,6 +400,11 @@ function converterImagemParaBase64(arquivo) {
 
 btnFiltros.addEventListener("click", () => {
   painelFiltros.classList.toggle("escondido");
+});
+
+btnVerTodasFavoritas.addEventListener("click", () => {
+  mostrandoTodasFavoritas = !mostrandoTodasFavoritas;
+  mostrarFavoritas();
 });
 
 busca.addEventListener("input", aplicarFiltros);

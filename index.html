@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Caderno de Receitas</title>
+  <title>Livro de Receitas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="style.css">
@@ -11,63 +11,110 @@
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <meta name="theme-color" content="#d97706">
+  <meta name="theme-color" content="#c8643b">
 </head>
 
 <body>
-  <main class="app">
-    <header class="topo">
-      <h1>📖 Caderno de Receitas</h1>
-      <p>Receitas da família em um só lugar</p>
+  <main class="app-shell">
+
+    <header class="hero">
+      <div class="avatar-livro">
+        <img src="assets/avatar-mae.png" alt="Foto da dona do livro de receitas">
+      </div>
+
+      <div class="titulo-app">
+        <h1>Livro de Receitas</h1>
+        <span>da Família ♡</span>
+        <p>Receitas guardadas com carinho</p>
+      </div>
+
+      <div class="ornamento-hero">
+        <span></span>
+        <strong>♡</strong>
+        <span></span>
+      </div>
     </header>
 
-    <section class="acoes">
-      <input 
-        type="text" 
-        id="busca" 
-        placeholder="Buscar por título ou categoria..."
+    <section class="busca-box">
+      <span class="icone-busca">🔍</span>
+
+      <input
+        type="text"
+        id="busca"
+        placeholder="Buscar receita, ingrediente ou categoria..."
       >
 
-      <button id="btnFiltros">
-        ⚙️ Filtros
-      </button>
-
-      <button id="btnNovaReceita">
-        ➕ Nova Receita
+      <button id="btnFiltros" type="button" title="Filtros">
+        ☷
       </button>
     </section>
 
     <section id="painelFiltros" class="painel-filtros escondido">
       <select id="filtroFavorita">
         <option value="">Todas as receitas</option>
-        <option value="Sim">⭐ Apenas favoritas</option>
+        <option value="Sim">♡ Apenas favoritas</option>
       </select>
 
       <select id="filtroAvaliacao">
         <option value="">Todas as avaliações</option>
-        <option value="5">⭐⭐⭐⭐⭐</option>
-        <option value="4">⭐⭐⭐⭐ ou mais</option>
-        <option value="3">⭐⭐⭐ ou mais</option>
-        <option value="2">⭐⭐ ou mais</option>
-        <option value="1">⭐ ou mais</option>
+        <option value="5">★★★★★</option>
+        <option value="4">★★★★ ou mais</option>
+        <option value="3">★★★ ou mais</option>
+        <option value="2">★★ ou mais</option>
+        <option value="1">★ ou mais</option>
       </select>
     </section>
 
-    <section id="listaReceitas" class="lista-receitas">
-      <p>Carregando receitas...</p>
+    <section id="resultadoBusca" class="secao escondido">
+      <div class="secao-topo">
+        <h2>Resultados da busca</h2>
+      </div>
+
+      <section id="listaBusca" class="lista-receitas">
+        <p class="mensagem-lista">Buscando receitas...</p>
+      </section>
     </section>
+
+    <section id="secaoFavoritas" class="secao">
+      <div class="secao-topo">
+        <h2>♡ Favoritas</h2>
+
+        <button id="btnVerTodasFavoritas" class="btn-ver-todas" type="button">
+          Ver todas ›
+        </button>
+      </div>
+
+      <section id="listaFavoritas" class="favoritas-grid">
+        <p class="mensagem-lista">Carregando favoritas...</p>
+      </section>
+    </section>
+
+    <section id="secaoRecentes" class="secao">
+      <div class="secao-topo">
+        <h2>◷ Adicionadas recentemente</h2>
+      </div>
+
+      <section id="listaReceitas" class="recentes-lista">
+        <p class="mensagem-lista">Carregando receitas...</p>
+      </section>
+    </section>
+
+    <button id="btnNovaReceita" class="botao-flutuante" type="button">
+      +
+    </button>
+
   </main>
 
   <section id="modalReceita" class="modal escondido">
     <div class="modal-conteudo">
-      <button class="fechar" id="fecharModal">×</button>
+      <button class="fechar" id="fecharModal" type="button">×</button>
       <div id="detalhesReceita"></div>
     </div>
   </section>
 
   <section id="modalFormulario" class="modal escondido">
     <div class="modal-conteudo">
-      <button class="fechar" id="fecharFormulario">×</button>
+      <button class="fechar" id="fecharFormulario" type="button">×</button>
 
       <h2>Nova Receita</h2>
 
@@ -95,11 +142,11 @@
 
         <select id="avaliacao">
           <option value="">Avaliação</option>
-          <option value="1">⭐</option>
-          <option value="2">⭐⭐</option>
-          <option value="3">⭐⭐⭐</option>
-          <option value="4">⭐⭐⭐⭐</option>
-          <option value="5">⭐⭐⭐⭐⭐</option>
+          <option value="1">★</option>
+          <option value="2">★★</option>
+          <option value="3">★★★</option>
+          <option value="4">★★★★</option>
+          <option value="5">★★★★★</option>
         </select>
 
         <textarea id="observacoes" placeholder="Observações"></textarea>
