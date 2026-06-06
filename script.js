@@ -86,7 +86,7 @@ function mostrarReceitas(lista) {
       <div class="receita-info">
         <h3>${receita.Título || "Sem título"}</h3>
         <p>${receita.Favorita === "Sim" ? "⭐ Favorita" : ""}</p>
-        <p>⏱️ ${receita["Tempo Médio"] || "Tempo não informado"}</p>
+        <p>⏱️ ${receita["Tempo Medio"] || "Tempo não informado"}</p>
         <p>🍽️ ${receita.Rendimento || "Rendimento não informado"}</p>
         <p>${"⭐".repeat(Number(receita.Avaliação) || 0)}</p>
         <span class="tag">${receita.Categorias || "Sem categoria"}</span>
@@ -111,7 +111,7 @@ function abrirReceita(receita) {
 
       <p class="favorita">${receita.Favorita === "Sim" ? "⭐ Receita favorita" : ""}</p>
 
-      <p><strong>⏱️ Tempo:</strong> ${receita["Tempo Médio"] || "Não informado"}</p>
+      <p><strong>⏱️ Tempo:</strong> ${receita["Tempo Medio"] || "Não informado"}</p>
       <p><strong>🍽️ Rendimento:</strong> ${receita.Rendimento || "Não informado"}</p>
       <p><strong>🏷️ Categorias:</strong> ${receita.Categorias || "Sem categoria"}</p>
       <p><strong>✍️ Origem/Autor:</strong> ${receita["Origem/Autor"] || "Não informado"}</p>
@@ -157,7 +157,7 @@ function abrirFormularioEdicao(id) {
 
   document.getElementById("titulo").value = receita.Título || "";
   document.getElementById("categorias").value = receita.Categorias || "";
-  document.getElementById("tempoMedio").value = receita["Tempo Médio"] || "";
+  document.getElementById("tempoMedio").value = receita["Tempo Medio"] || "";
   document.getElementById("rendimento").value = receita.Rendimento || "";
   document.getElementById("ingredientes").value = receita.Ingredientes || "";
   document.getElementById("modoPreparo").value = receita["Modo de Preparo"] || "";
