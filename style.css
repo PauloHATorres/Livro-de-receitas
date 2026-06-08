@@ -944,14 +944,26 @@ button:hover {
   left: 58mm;
   width: 66mm;
   height: 148mm;
-  font-size: 8.7px;
-  line-height: 1.38;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #222;
+  overflow: hidden;
+}
+
+.pdf-bloco-ingredientes {
+  position: absolute;
+  top: 38mm;
+  left: 58mm;
+  width: 66mm;
+  height: 148mm;
+  font-size: 11.5px;
+  line-height: 1.32;
   color: #222;
   overflow: hidden;
 }
 
 .pdf-bloco-ingredientes p {
-  margin: 0 0 2.2mm;
+  margin: 0 0 1.35mm;
 }
 
 .pdf-bloco-preparo {
@@ -960,7 +972,7 @@ button:hover {
   left: 12mm;
   width: 106mm;
   height: 160mm;
-  font-size: 8.8px;
+  font-size: 11.5px;
   line-height: 1.45;
   color: #222;
   overflow: hidden;
@@ -972,10 +984,4 @@ button:hover {
 
 .pdf-bloco-preparo strong {
   color: #7f4f35;
-}
-
-@media (max-width: 768px) {
-  .acoes-receita {
-    flex-direction: column;
-  }
 }
