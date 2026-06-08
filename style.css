@@ -825,3 +825,157 @@ button:hover {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* PDF da receita - A4 horizontal com 2 páginas do caderno */
+.acoes-receita {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.acoes-receita .btn-editar {
+  flex: 1;
+  margin-top: 0;
+}
+
+.pdf-a4-receita {
+  width: 297mm;
+  height: 210mm;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.pdf-pagina {
+  width: 130mm;
+  height: 200mm;
+  position: absolute;
+  top: 5mm;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #222;
+}
+
+.pdf-pagina-dados {
+  left: 13mm;
+  background-image: url("assets/pdf/pagina-dados.png");
+}
+
+.pdf-pagina-preparo {
+  left: 154mm;
+  background-image: url("assets/pdf/pagina-preparo.png");
+}
+
+.pdf-titulo-receita {
+  position: absolute;
+  top: 7.8mm;
+  left: 29mm;
+  width: 88mm;
+  height: 12mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2f2a24;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.pdf-tempo,
+.pdf-rendimento {
+  position: absolute;
+  left: 8mm;
+  width: 38mm;
+  height: 7mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8.2px;
+  font-weight: 600;
+  color: #2f2a24;
+  text-align: center;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.pdf-tempo {
+  top: 64.5mm;
+}
+
+.pdf-rendimento {
+  top: 90mm;
+}
+
+.pdf-foto {
+  position: absolute;
+  left: 5.5mm;
+  top: 130mm;
+  width: 44mm;
+  height: 44mm;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+}
+
+.pdf-sem-foto {
+  position: absolute;
+  left: 6mm;
+  top: 124mm;
+  width: 43mm;
+  height: 58mm;
+  border-radius: 8px;
+  background: #f7efe6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9b8068;
+  font-size: 10px;
+}
+
+.pdf-bloco-ingredientes {
+  position: absolute;
+  top: 38mm;
+  left: 58mm;
+  width: 66mm;
+  height: 148mm;
+  font-size: 8.7px;
+  line-height: 1.38;
+  color: #222;
+  overflow: hidden;
+}
+
+.pdf-bloco-ingredientes p {
+  margin: 0 0 2.2mm;
+}
+
+.pdf-bloco-preparo {
+  position: absolute;
+  top: 26mm;
+  left: 12mm;
+  width: 106mm;
+  height: 160mm;
+  font-size: 8.8px;
+  line-height: 1.45;
+  color: #222;
+  overflow: hidden;
+}
+
+.pdf-bloco-preparo p {
+  margin: 0 0 3mm;
+}
+
+.pdf-bloco-preparo strong {
+  color: #7f4f35;
+}
+
+@media (max-width: 768px) {
+  .acoes-receita {
+    flex-direction: column;
+  }
+}

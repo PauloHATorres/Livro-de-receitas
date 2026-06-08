@@ -51,10 +51,7 @@ function aplicarFiltros() {
   const favoritaSelecionada = filtroFavorita.value;
   const avaliacaoSelecionada = Number(filtroAvaliacao.value || 0);
 
-  const temFiltroAtivo =
-    termo ||
-    favoritaSelecionada ||
-    avaliacaoSelecionada;
+  const temFiltroAtivo = termo || favoritaSelecionada || avaliacaoSelecionada;
 
   if (temFiltroAtivo) {
     const filtradas = receitas.filter((receita) => {
@@ -253,7 +250,7 @@ function criarTags(categorias) {
 async function alternarFavorito(event, id) {
   event.stopPropagation();
 
-  const receita = receitas.find(r => r.ID === id);
+  const receita = receitas.find(r => String(r.ID) === String(id));
 
   if (!receita) {
     alert("Receita não encontrada.");
@@ -329,9 +326,15 @@ function abrirReceita(receita) {
       <h3>Observações</h3>
       <p>${formatarTexto(receita.Observações || "Sem observações")}</p>
 
-      <button class="btn-editar" onclick="abrirFormularioEdicao('${receita.ID}')">
-        Editar Receita
-      </button>
+      <div class="acoes-receita">
+        <button class="btn-editar" onclick="baixarReceitaPDF('${receita.ID}')">
+          📄 Baixar PDF
+        </button>
+
+        <button class="btn-editar" onclick="abrirFormularioEdicao('${receita.ID}')">
+          Editar Receita
+        </button>
+      </div>
     </div>
   `;
 
@@ -349,7 +352,7 @@ function abrirFormularioNovaReceita() {
 }
 
 function abrirFormularioEdicao(id) {
-  const receita = receitas.find(r => r.ID === id);
+  const receita = receitas.find(r => String(r.ID) === String(id));
 
   if (!receita) {
     alert("Receita não encontrada.");
@@ -396,6 +399,116 @@ function converterImagemParaBase64(arquivo) {
 
     leitor.readAsDataURL(arquivo);
   });
+}
+
+function escaparHTML(texto) {
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatarListaPDF(texto) {
+  if (!texto) return "";
+
+  return String(texto)
+    .split(/\n+/)
+    .map(linha => linha.trim())
+    .filter(Boolean)
+    .map(linha => `<p>• ${escaparHTML(linha)}</p>`)
+    .join("");
+}
+
+function formatarPreparoPDF(texto) {
+  if (!texto) return "";
+
+  return String(texto)
+    .split(/\n+/)
+    .map(linha => linha.trim())
+    .filter(Boolean)
+    .map((linha, index) =>
+      `<p><strong>${index + 1}.</strong> ${escaparHTML(linha)}</p>`
+    )
+    .join("");
+}
+
+async function baixarReceitaPDF(id) {
+  const receita = receitas.find(r => String(r.ID) === String(id));
+
+  if (!receita) {
+    alert("Receita não encontrada.");
+    return;
+  }
+
+  const nomeArquivo = String(receita.Título || "receita")
+    .replace(/[\\/:*?"<>|]/g, "")
+    .trim() || "receita";
+
+  const folha = document.createElement("div");
+
+  folha.style.width = "297mm";
+  folha.style.height = "210mm";
+  folha.style.background = "white";
+  folha.style.position = "fixed";
+  folha.style.left = "0";
+  folha.style.top = "0";
+  folha.style.zIndex = "-1";
+
+  folha.innerHTML = `
+    <div class="pdf-a4-receita">
+      <div class="pdf-pagina pdf-pagina-dados">
+        <div class="pdf-titulo-receita">${escaparHTML(receita.Título || "")}</div>
+
+        <div class="pdf-tempo">${escaparHTML(receita["Tempo Medio"] || "—")}</div>
+
+        <div class="pdf-rendimento">${escaparHTML(receita.Rendimento || "—")}</div>
+
+        ${
+          receita.Foto
+            ? `<img class="pdf-foto" src="${receita.Foto}">`
+            : `<div class="pdf-sem-foto">Sem foto</div>`
+        }
+
+        <div class="pdf-bloco-ingredientes">
+          ${formatarListaPDF(receita.Ingredientes || "")}
+        </div>
+      </div>
+
+      <div class="pdf-pagina pdf-pagina-preparo">
+        <div class="pdf-bloco-preparo">
+          ${formatarPreparoPDF(receita["Modo de Preparo"] || "")}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(folha);
+
+  const canvas = await html2canvas(folha, {
+    scale: 3,
+    backgroundColor: "#ffffff",
+    useCORS: true,
+    allowTaint: true,
+    scrollX: 0,
+    scrollY: 0
+  });
+
+  const imgData = canvas.toDataURL("image/jpeg", 1);
+
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a4"
+  });
+
+  pdf.addImage(imgData, "JPEG", 0, 0, 297, 210);
+  pdf.save(`${nomeArquivo}.pdf`);
+
+  folha.remove();
 }
 
 btnFiltros.addEventListener("click", () => {
