@@ -29,6 +29,9 @@ const btnNovaReceita = document.getElementById("btnNovaReceita");
 const fecharFormulario = document.getElementById("fecharFormulario");
 const formReceita = document.getElementById("formReceita");
 
+const btnLerReceitaIA = document.getElementById("btnLerReceitaIA");
+const fotoReceitaIA = document.getElementById("fotoReceitaIA");
+
 async function carregarReceitas() {
   try {
     listaFavoritas.innerHTML = "<p class='mensagem-lista'>Carregando favoritas...</p>";
@@ -346,7 +349,7 @@ function abrirFormularioNovaReceita() {
   formReceita.reset();
 
   document.querySelector("#modalFormulario h2").textContent = "Nova Receita";
-  formReceita.querySelector("button").textContent = "Salvar Receita";
+  formReceita.querySelector('button[type="submit"]').textContent = "Salvar Receita";
 
   modalFormulario.classList.remove("escondido");
 }
@@ -374,7 +377,7 @@ function abrirFormularioEdicao(id) {
   document.getElementById("observacoes").value = receita.Observações || "";
 
   document.querySelector("#modalFormulario h2").textContent = "Editar Receita";
-  formReceita.querySelector("button").textContent = "Salvar Alterações";
+  formReceita.querySelector('button[type="submit"]').textContent = "Salvar Alterações";
 
   modalReceita.classList.add("escondido");
   modalFormulario.classList.remove("escondido");
@@ -550,6 +553,75 @@ modalFormulario.addEventListener("click", (e) => {
   }
 });
 
+btnLerReceitaIA.addEventListener("click", async () => {
+  try {
+    const arquivos = Array.from(fotoReceitaIA.files);
+
+    if (arquivos.length === 0) {
+      alert("Escolha pelo menos uma foto da receita primeiro.");
+      return;
+    }
+
+    btnLerReceitaIA.disabled = true;
+    btnLerReceitaIA.textContent = "🧠 Lendo receita...";
+
+    const imagensBase64 = await Promise.all(
+      arquivos.map(arquivo => converterImagemParaBase64(arquivo))
+    );
+
+    const resposta = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "lerReceitaIA",
+        imagens: imagensBase64
+      })
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.status !== "ok") {
+      throw new Error(dados.mensagem);
+    }
+
+    const receita = dados.receita;
+
+    document.getElementById("titulo").value =
+      receita.titulo || "";
+
+    document.getElementById("categorias").value =
+      receita.categorias || "";
+
+    document.getElementById("tempoMedio").value =
+      receita.tempoPreparo || "";
+
+    document.getElementById("rendimento").value =
+      receita.rendimento || "";
+
+    document.getElementById("ingredientes").value =
+      receita.ingredientes || "";
+
+    document.getElementById("modoPreparo").value =
+      receita.modoPreparo || "";
+
+    document.getElementById("observacoes").value =
+      receita.observacoes || "";
+
+    alert("✨ Receita preenchida automaticamente!");
+
+  } catch (erro) {
+    console.error(erro);
+
+    alert(
+      "Erro ao ler receita com IA:\n\n" +
+      erro.message
+    );
+  }
+
+  btnLerReceitaIA.disabled = false;
+  btnLerReceitaIA.textContent =
+    "✨ Ler receita com IA";
+});
+
 formReceita.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -573,7 +645,8 @@ formReceita.addEventListener("submit", async (e) => {
   };
 
   try {
-    const botao = formReceita.querySelector("button");
+    const botao =
+      formReceita.querySelector('button[type="submit"]');
     botao.disabled = true;
     botao.textContent = receitaEditando ? "Salvando alterações..." : "Salvando...";
 
@@ -602,7 +675,8 @@ formReceita.addEventListener("submit", async (e) => {
     console.error(erro);
     alert("Erro ao conectar com a planilha.");
 
-    const botao = formReceita.querySelector("button");
+    const botao =
+      formReceita.querySelector('button[type="submit"]');
     botao.disabled = false;
     botao.textContent = "Salvar Receita";
   }

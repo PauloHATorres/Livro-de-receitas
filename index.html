@@ -119,6 +119,25 @@
       <h2>Nova Receita</h2>
 
       <form id="formReceita">
+
+                <div class="importar-ia">
+          <label>Tire uma foto do caderno e a IA preencherá os campos para você.</label>
+
+          <input
+            type="file"
+            id="fotoReceitaIA"
+            accept="image/*"
+            multiple
+          >
+
+          <button
+            type="button"
+            id="btnLerReceitaIA"
+          >
+            ✨ Ler receita com IA
+          </button>
+        </div>
+
         <input type="text" id="titulo" placeholder="Título da receita" required>
 
         <input type="text" id="categorias" placeholder="Categorias. Ex: bolo, sobremesa">
