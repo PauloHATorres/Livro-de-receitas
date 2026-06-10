@@ -22,6 +22,10 @@
         <img src="assets/avatar-mae.png" alt="Foto da dona do livro de receitas">
       </div>
 
+      <button id="btnCalculadora" class="botao-calculadora-hero" type="button" title="Ajustar receita">
+        🧮
+      </button>
+
       <div class="titulo-app">
         <h1>Livro de Receitas</h1>
         <span>da Família ♡</span>
@@ -146,6 +150,18 @@
 
         <input type="text" id="rendimento" placeholder="Rendimento. Ex: 8 porções">
 
+        <div class="grupo-forma-receita">
+          <label class="label-bloco">Forma da receita (opcional)</label>
+
+          <select id="tipoFormaReceita">
+            <option value="">Sem forma cadastrada</option>
+            <option value="retangular">Retangular / quadrada</option>
+            <option value="redonda">Redonda</option>
+          </select>
+
+          <div id="camposFormaReceita" class="campos-forma-receita escondido"></div>
+        </div>
+
         <textarea id="ingredientes" placeholder="Ingredientes" required></textarea>
 
         <textarea id="modoPreparo" placeholder="Modo de preparo" required></textarea>
@@ -174,6 +190,67 @@
           Salvar Receita
         </button>
       </form>
+    </div>
+  </section>
+
+
+  <section id="modalCalculadora" class="modal escondido">
+    <div class="modal-conteudo modal-calculadora">
+      <button class="fechar" id="fecharCalculadora" type="button">×</button>
+
+      <h2>Calculadora de Receita</h2>
+      <p class="texto-ajuda-calculadora">
+        Escolha uma receita e ajuste os ingredientes por rendimento ou pelo volume da forma cadastrada.
+      </p>
+
+      <div class="calculadora-card">
+        <label for="selectReceitaCalculadora">Receita</label>
+        <select id="selectReceitaCalculadora">
+          <option value="">Carregando receitas...</option>
+        </select>
+      </div>
+
+      <div id="rendimentoOriginalInfo" class="rendimento-original-info">
+        <span>Rendimento original</span>
+        <strong>Selecione uma receita</strong>
+      </div>
+
+      <div class="calculadora-opcoes">
+        <button class="calc-opcao ativa" type="button" data-modo="rendimento">Por rendimento/peso</button>
+        <button class="calc-opcao" type="button" data-modo="forma">Por forma</button>
+      </div>
+
+      <div id="calcRendimento" class="calculadora-card calc-painel">
+        <label>
+          Novo rendimento
+          <input type="number" id="rendimentoNovoCalc" min="0" step="0.01" placeholder="Ex: 730">
+        </label>
+
+        <button id="btnCalcularRendimento" class="btn-calcular" type="button">
+          Calcular ajuste
+        </button>
+      </div>
+
+      <div id="calcForma" class="calculadora-card calc-painel escondido">
+        <h3>Forma original da receita</h3>
+        <div id="formaOriginalInfo" class="forma-original-info">
+          Selecione uma receita para ver a forma cadastrada.
+        </div>
+
+        <h3>Forma nova</h3>
+        <select id="tipoFormaNova">
+          <option value="retangular">Retangular / quadrada</option>
+          <option value="redonda">Redonda</option>
+        </select>
+
+        <div id="camposFormaNova" class="campos-forma"></div>
+
+        <button id="btnCalcularForma" class="btn-calcular" type="button">
+          Calcular por volume da forma
+        </button>
+      </div>
+
+      <div id="resultadoCalculadora" class="resultado-calculadora escondido"></div>
     </div>
   </section>
 

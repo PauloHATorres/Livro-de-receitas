@@ -32,6 +32,24 @@ const formReceita = document.getElementById("formReceita");
 const btnLerReceitaIA = document.getElementById("btnLerReceitaIA");
 const fotoReceitaIA = document.getElementById("fotoReceitaIA");
 
+const tipoFormaReceita = document.getElementById("tipoFormaReceita");
+const camposFormaReceita = document.getElementById("camposFormaReceita");
+
+const btnCalculadora = document.getElementById("btnCalculadora");
+const modalCalculadora = document.getElementById("modalCalculadora");
+const fecharCalculadora = document.getElementById("fecharCalculadora");
+const selectReceitaCalculadora = document.getElementById("selectReceitaCalculadora");
+const rendimentoOriginalInfo = document.getElementById("rendimentoOriginalInfo");
+const rendimentoNovoCalc = document.getElementById("rendimentoNovoCalc");
+const btnCalcularRendimento = document.getElementById("btnCalcularRendimento");
+const btnCalcularForma = document.getElementById("btnCalcularForma");
+const resultadoCalculadora = document.getElementById("resultadoCalculadora");
+const calcRendimento = document.getElementById("calcRendimento");
+const calcForma = document.getElementById("calcForma");
+const tipoFormaNova = document.getElementById("tipoFormaNova");
+const camposFormaNova = document.getElementById("camposFormaNova");
+const formaOriginalInfo = document.getElementById("formaOriginalInfo");
+
 async function carregarReceitas() {
   try {
     listaFavoritas.innerHTML = "<p class='mensagem-lista'>Carregando favoritas...</p>";
@@ -318,6 +336,8 @@ function abrirReceita(receita) {
         <p><strong>Origem/Autor:</strong><br>${receita["Origem/Autor"] || "Não informado"}</p>
       </div>
 
+      ${gerarResumoFormaReceitaHTML(receita)}
+
       <p><strong>Categorias:</strong> ${receita.Categorias || "Sem categoria"}</p>
 
       <h3>Ingredientes</h3>
@@ -347,6 +367,7 @@ function abrirReceita(receita) {
 function abrirFormularioNovaReceita() {
   receitaEditando = null;
   formReceita.reset();
+  desenharCamposFormaReceita();
 
   document.querySelector("#modalFormulario h2").textContent = "Nova Receita";
   formReceita.querySelector('button[type="submit"]').textContent = "Salvar Receita";
@@ -368,6 +389,7 @@ function abrirFormularioEdicao(id) {
   document.getElementById("categorias").value = receita.Categorias || "";
   document.getElementById("tempoMedio").value = receita["Tempo Medio"] || "";
   document.getElementById("rendimento").value = receita.Rendimento || "";
+  preencherCamposFormaReceita(receita);
   document.getElementById("ingredientes").value = receita.Ingredientes || "";
   document.getElementById("modoPreparo").value = receita["Modo de Preparo"] || "";
   document.getElementById("foto").value = "";
@@ -514,6 +536,412 @@ async function baixarReceitaPDF(id) {
   folha.remove();
 }
 
+
+function pegarCampoReceita(receita, nomes) {
+  for (const nome of nomes) {
+    if (receita[nome] !== undefined && receita[nome] !== null && receita[nome] !== "") {
+      return receita[nome];
+    }
+  }
+  return "";
+}
+
+function numeroCampoReceita(receita, nomes) {
+  const valor = pegarCampoReceita(receita, nomes);
+  if (typeof valor === "number") return valor;
+  const texto = String(valor || "").replace(",", ".");
+  const numero = Number(texto);
+  return Number.isFinite(numero) ? numero : 0;
+}
+
+function obterFormaReceita(receita) {
+  const tipo = String(pegarCampoReceita(receita, ["Tipo Forma", "TipoForma", "tipoForma", "Forma Tipo", "Forma"])).toLowerCase();
+
+  if (!tipo) return null;
+
+  const altura = numeroCampoReceita(receita, ["Forma Altura", "Altura Forma", "formaAltura", "Altura"]);
+
+  if (tipo.includes("redonda")) {
+    const diametro = numeroCampoReceita(receita, ["Forma Diametro", "Forma Diâmetro", "Diametro Forma", "Diâmetro Forma", "formaDiametro", "Diametro", "Diâmetro"]);
+    if (!diametro || !altura) return null;
+    return { tipo: "redonda", diametro, altura };
+  }
+
+  if (tipo.includes("retangular") || tipo.includes("quadrada")) {
+    const comprimento = numeroCampoReceita(receita, ["Forma Comprimento", "Comprimento Forma", "formaComprimento", "Comprimento"]);
+    const largura = numeroCampoReceita(receita, ["Forma Largura", "Largura Forma", "formaLargura", "Largura"]);
+    if (!comprimento || !largura || !altura) return null;
+    return { tipo: "retangular", comprimento, largura, altura };
+  }
+
+  return null;
+}
+
+function calcularVolumeFormaObjeto(forma) {
+  if (!forma) return 0;
+
+  if (forma.tipo === "redonda") {
+    const raio = forma.diametro / 2;
+    return Math.PI * raio * raio * forma.altura;
+  }
+
+  return forma.comprimento * forma.largura * forma.altura;
+}
+
+function descreverForma(forma) {
+  if (!forma) return "Forma não cadastrada";
+
+  if (forma.tipo === "redonda") {
+    return `Redonda: ${formatarNumeroCalculadora(forma.diametro)} cm de diâmetro × ${formatarNumeroCalculadora(forma.altura)} cm de altura`;
+  }
+
+  return `Retangular/quadrada: ${formatarNumeroCalculadora(forma.comprimento)} × ${formatarNumeroCalculadora(forma.largura)} × ${formatarNumeroCalculadora(forma.altura)} cm`;
+}
+
+function gerarResumoFormaReceitaHTML(receita) {
+  const forma = obterFormaReceita(receita);
+  if (!forma) return "";
+
+  return `<p><strong>Forma:</strong> ${escaparHTML(descreverForma(forma))}</p>`;
+}
+
+function desenharCamposFormaReceita() {
+  const tipo = tipoFormaReceita.value;
+
+  if (!tipo) {
+    camposFormaReceita.classList.add("escondido");
+    camposFormaReceita.innerHTML = "";
+    return;
+  }
+
+  camposFormaReceita.classList.remove("escondido");
+
+  if (tipo === "redonda") {
+    camposFormaReceita.innerHTML = `
+      <label>Diâmetro em cm<input type="number" id="formaDiametro" min="0" step="0.1" placeholder="Ex: 22"></label>
+      <label>Altura em cm<input type="number" id="formaAltura" min="0" step="0.1" placeholder="Ex: 6"></label>
+    `;
+    return;
+  }
+
+  camposFormaReceita.innerHTML = `
+    <label>Comprimento em cm<input type="number" id="formaComprimento" min="0" step="0.1" placeholder="Ex: 30"></label>
+    <label>Largura em cm<input type="number" id="formaLargura" min="0" step="0.1" placeholder="Ex: 20"></label>
+    <label>Altura em cm<input type="number" id="formaAltura" min="0" step="0.1" placeholder="Ex: 5"></label>
+  `;
+}
+
+function preencherCamposFormaReceita(receita) {
+  const forma = obterFormaReceita(receita);
+
+  if (!forma) {
+    tipoFormaReceita.value = "";
+    desenharCamposFormaReceita();
+    return;
+  }
+
+  tipoFormaReceita.value = forma.tipo;
+  desenharCamposFormaReceita();
+
+  if (forma.tipo === "redonda") {
+    document.getElementById("formaDiametro").value = forma.diametro;
+    document.getElementById("formaAltura").value = forma.altura;
+    return;
+  }
+
+  document.getElementById("formaComprimento").value = forma.comprimento;
+  document.getElementById("formaLargura").value = forma.largura;
+  document.getElementById("formaAltura").value = forma.altura;
+}
+
+function abrirCalculadora() {
+  preencherReceitasCalculadora();
+  rendimentoNovoCalc.value = "";
+  desenharCamposFormaNova();
+  atualizarInfoCalculadora();
+  modalCalculadora.classList.remove("escondido");
+}
+
+function preencherReceitasCalculadora() {
+  const valorAtual = selectReceitaCalculadora.value;
+  selectReceitaCalculadora.innerHTML = `<option value="">Selecione uma receita...</option>`;
+
+  receitas
+    .map((receita, index) => ({ receita, index }))
+    .sort((a, b) => String(a.receita.Título || "").localeCompare(String(b.receita.Título || "")))
+    .forEach(({ receita, index }) => {
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = receita.Título || "Sem título";
+      selectReceitaCalculadora.appendChild(option);
+    });
+
+  if (valorAtual && [...selectReceitaCalculadora.options].some(opcao => opcao.value === valorAtual)) {
+    selectReceitaCalculadora.value = valorAtual;
+  }
+}
+
+function obterReceitaCalculadoraSelecionada() {
+  const index = Number(selectReceitaCalculadora.value);
+  if (!Number.isInteger(index) || index < 0) return null;
+  return receitas[index] || null;
+}
+
+function atualizarInfoCalculadora() {
+  const receita = obterReceitaCalculadoraSelecionada();
+  resultadoCalculadora.classList.add("escondido");
+  resultadoCalculadora.innerHTML = "";
+
+  if (!receita) {
+    rendimentoOriginalInfo.innerHTML = `
+      <span>Rendimento original</span>
+      <strong>Selecione uma receita</strong>
+    `;
+    formaOriginalInfo.innerHTML = "Selecione uma receita para ver a forma cadastrada.";
+    return;
+  }
+
+  rendimentoOriginalInfo.innerHTML = `
+    <span>Rendimento original cadastrado</span>
+    <strong>${escaparHTML(receita.Rendimento || "Não informado")}</strong>
+  `;
+
+  const forma = obterFormaReceita(receita);
+
+  if (!forma) {
+    formaOriginalInfo.innerHTML = `
+      <strong>Essa receita ainda não tem forma cadastrada.</strong><br>
+      Edite a receita e preencha a forma original para usar este cálculo.
+    `;
+    return;
+  }
+
+  formaOriginalInfo.innerHTML = `
+    <strong>${escaparHTML(descreverForma(forma))}</strong><br>
+    Volume: ${formatarNumeroCalculadora(calcularVolumeFormaObjeto(forma))} cm³
+  `;
+}
+
+function trocarModoCalculadora(modo) {
+  document.querySelectorAll(".calc-opcao").forEach(botao => {
+    botao.classList.toggle("ativa", botao.dataset.modo === modo);
+  });
+
+  calcRendimento.classList.toggle("escondido", modo !== "rendimento");
+  calcForma.classList.toggle("escondido", modo !== "forma");
+  resultadoCalculadora.classList.add("escondido");
+  resultadoCalculadora.innerHTML = "";
+}
+
+function extrairPrimeiroNumero(texto) {
+  const match = String(texto || "").match(/\d+(?:[,.]\d+)?/);
+  if (!match) return 0;
+  return Number(match[0].replace(",", "."));
+}
+
+function formatarNumeroCalculadora(numero) {
+  if (!Number.isFinite(numero)) return "";
+  const arredondado = Math.round(numero * 100) / 100;
+  if (Number.isInteger(arredondado)) return String(arredondado);
+  return String(arredondado).replace(".", ",");
+}
+
+function normalizarFracaoCalculadora(valor) {
+  const texto = String(valor || "").trim();
+  const fracoes = {
+    "½": 0.5, "⅓": 1 / 3, "⅔": 2 / 3, "¼": 0.25, "¾": 0.75,
+    "⅛": 0.125, "⅜": 0.375, "⅝": 0.625, "⅞": 0.875
+  };
+  if (fracoes[texto]) return fracoes[texto];
+  if (/^\d+\/\d+$/.test(texto)) {
+    const [num, den] = texto.split("/").map(Number);
+    return den ? num / den : NaN;
+  }
+  return Number(texto.replace(",", "."));
+}
+
+function ajustarLinhaIngrediente(linha, fator) {
+  const texto = String(linha || "").trim();
+  if (!texto) return null;
+
+  const match = texto.match(/^(\d+(?:[,.]\d+)?|\d+\/\d+|[½⅓⅔¼¾⅛⅜⅝⅞])\s*([a-zA-ZçÇáàâãéèêíïóôõöúüÁÀÂÃÉÈÊÍÏÓÔÕÖÚÜ]+)?\s*(.*)$/);
+
+  if (!match) {
+    return { original: texto, ajustado: texto, observacao: "sem alteração automática" };
+  }
+
+  const quantidadeOriginal = normalizarFracaoCalculadora(match[1]);
+  if (!Number.isFinite(quantidadeOriginal)) {
+    return { original: texto, ajustado: texto, observacao: "sem alteração automática" };
+  }
+
+  const unidade = match[2] || "";
+  const restante = match[3] || "";
+  const quantidadeNova = quantidadeOriginal * fator;
+  const unidadeNormalizada = unidade.toLowerCase();
+  const unidadesInteiras = ["ovo", "ovos", "un", "unidade", "unidades"];
+
+  if (unidadesInteiras.includes(unidadeNormalizada)) {
+    const arredondado = Math.max(1, Math.round(quantidadeNova));
+    return {
+      original: texto,
+      ajustado: `${arredondado} ${unidade} ${restante}`.trim(),
+      observacao: `aprox. ${formatarNumeroCalculadora(quantidadeNova)}`
+    };
+  }
+
+  return {
+    original: texto,
+    ajustado: `${formatarNumeroCalculadora(quantidadeNova)} ${unidade} ${restante}`.trim(),
+    observacao: ""
+  };
+}
+
+function gerarIngredientesAjustados(receita, fator) {
+  const linhas = String(receita.Ingredientes || "")
+    .split(/\n+/)
+    .map(linha => linha.trim())
+    .filter(Boolean);
+
+  return linhas.map(linha => ajustarLinhaIngrediente(linha, fator)).filter(Boolean);
+}
+
+function mostrarResultadoAjuste({ receita, fator, resumo }) {
+  const ingredientesAjustados = gerarIngredientesAjustados(receita, fator);
+
+  resultadoCalculadora.innerHTML = `
+    <h3>Resultado</h3>
+    <p><strong>Receita:</strong> ${escaparHTML(receita.Título || "Sem título")}</p>
+    ${resumo}
+    <p><strong>Fator aplicado:</strong> ×${formatarNumeroCalculadora(fator)}</p>
+
+    <div class="tabela-calculadora">
+      <div class="linha-tabela cabecalho-tabela">
+        <span>Original</span>
+        <span>Ajustado</span>
+      </div>
+
+      ${ingredientesAjustados.map(item => `
+        <div class="linha-tabela">
+          <span>${escaparHTML(item.original)}</span>
+          <span>
+            ${escaparHTML(item.ajustado)}
+            ${item.observacao ? `<small>${escaparHTML(item.observacao)}</small>` : ""}
+          </span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  resultadoCalculadora.classList.remove("escondido");
+}
+
+function calcularAjusteRendimento() {
+  const receita = obterReceitaCalculadoraSelecionada();
+  if (!receita) {
+    alert("Escolha uma receita primeiro.");
+    return;
+  }
+
+  const rendimentoOriginal = extrairPrimeiroNumero(receita.Rendimento);
+  const rendimentoNovo = Number(rendimentoNovoCalc.value);
+
+  if (!rendimentoOriginal) {
+    alert("Essa receita não tem um número no rendimento cadastrado. Exemplo: 450 g ou 8 porções.");
+    return;
+  }
+
+  if (!rendimentoNovo) {
+    alert("Preencha o novo rendimento.");
+    return;
+  }
+
+  const fator = rendimentoNovo / rendimentoOriginal;
+  mostrarResultadoAjuste({
+    receita,
+    fator,
+    resumo: `
+      <p><strong>Rendimento original:</strong> ${escaparHTML(receita.Rendimento || "Não informado")}</p>
+      <p><strong>Novo rendimento:</strong> ${formatarNumeroCalculadora(rendimentoNovo)}</p>
+    `
+  });
+}
+
+function desenharCamposFormaNova() {
+  const tipo = tipoFormaNova.value;
+
+  if (tipo === "redonda") {
+    camposFormaNova.innerHTML = `
+      <label>Diâmetro em cm<input type="number" id="diametro-nova" min="0" step="0.1" placeholder="Ex: 22"></label>
+      <label>Altura em cm<input type="number" id="altura-nova" min="0" step="0.1" placeholder="Ex: 6"></label>
+    `;
+    return;
+  }
+
+  camposFormaNova.innerHTML = `
+    <label>Comprimento em cm<input type="number" id="comprimento-nova" min="0" step="0.1" placeholder="Ex: 30"></label>
+    <label>Largura em cm<input type="number" id="largura-nova" min="0" step="0.1" placeholder="Ex: 20"></label>
+    <label>Altura em cm<input type="number" id="altura-nova" min="0" step="0.1" placeholder="Ex: 5"></label>
+  `;
+}
+
+function obterValorInputForma(id) {
+  const elemento = document.getElementById(id);
+  return Number(elemento?.value || 0);
+}
+
+function obterFormaNovaDigitada() {
+  const tipo = tipoFormaNova.value;
+
+  if (tipo === "redonda") {
+    const diametro = obterValorInputForma("diametro-nova");
+    const altura = obterValorInputForma("altura-nova");
+    if (!diametro || !altura) return null;
+    return { tipo: "redonda", diametro, altura };
+  }
+
+  const comprimento = obterValorInputForma("comprimento-nova");
+  const largura = obterValorInputForma("largura-nova");
+  const altura = obterValorInputForma("altura-nova");
+  if (!comprimento || !largura || !altura) return null;
+  return { tipo: "retangular", comprimento, largura, altura };
+}
+
+function calcularAjusteForma() {
+  const receita = obterReceitaCalculadoraSelecionada();
+  if (!receita) {
+    alert("Escolha uma receita primeiro.");
+    return;
+  }
+
+  const formaOriginal = obterFormaReceita(receita);
+  if (!formaOriginal) {
+    alert("Essa receita ainda não tem forma cadastrada. Edite a receita e preencha a forma original.");
+    return;
+  }
+
+  const formaNova = obterFormaNovaDigitada();
+  if (!formaNova) {
+    alert("Preencha todas as medidas da forma nova.");
+    return;
+  }
+
+  const volumeOriginal = calcularVolumeFormaObjeto(formaOriginal);
+  const volumeNovo = calcularVolumeFormaObjeto(formaNova);
+  const fator = volumeNovo / volumeOriginal;
+
+  mostrarResultadoAjuste({
+    receita,
+    fator,
+    resumo: `
+      <p><strong>Forma original:</strong> ${escaparHTML(descreverForma(formaOriginal))}</p>
+      <p><strong>Forma nova:</strong> ${escaparHTML(descreverForma(formaNova))}</p>
+      <p><strong>Volume original:</strong> ${formatarNumeroCalculadora(volumeOriginal)} cm³</p>
+      <p><strong>Volume novo:</strong> ${formatarNumeroCalculadora(volumeNovo)} cm³</p>
+    `
+  });
+}
+
 btnFiltros.addEventListener("click", () => {
   painelFiltros.classList.toggle("escondido");
 });
@@ -635,6 +1063,11 @@ formReceita.addEventListener("submit", async (e) => {
     categorias: document.getElementById("categorias").value,
     tempoMedio: document.getElementById("tempoMedio").value,
     rendimento: document.getElementById("rendimento").value,
+    tipoForma: tipoFormaReceita.value,
+    comprimento: document.getElementById("formaComprimento")?.value || "",
+    largura: document.getElementById("formaLargura")?.value || "",
+    diametro: document.getElementById("formaDiametro")?.value || "",
+    alturaForma: document.getElementById("formaAltura")?.value || "",
     ingredientes: document.getElementById("ingredientes").value,
     modoPreparo: document.getElementById("modoPreparo").value,
     foto: fotoBase64,
@@ -681,5 +1114,31 @@ formReceita.addEventListener("submit", async (e) => {
     botao.textContent = "Salvar Receita";
   }
 });
+
+tipoFormaReceita.addEventListener("change", desenharCamposFormaReceita);
+
+btnCalculadora.addEventListener("click", abrirCalculadora);
+
+fecharCalculadora.addEventListener("click", () => {
+  modalCalculadora.classList.add("escondido");
+});
+
+modalCalculadora.addEventListener("click", (e) => {
+  if (e.target === modalCalculadora) {
+    modalCalculadora.classList.add("escondido");
+  }
+});
+
+selectReceitaCalculadora.addEventListener("change", atualizarInfoCalculadora);
+btnCalcularRendimento.addEventListener("click", calcularAjusteRendimento);
+btnCalcularForma.addEventListener("click", calcularAjusteForma);
+tipoFormaNova.addEventListener("change", desenharCamposFormaNova);
+
+document.querySelectorAll(".calc-opcao").forEach(botao => {
+  botao.addEventListener("click", () => trocarModoCalculadora(botao.dataset.modo));
+});
+
+desenharCamposFormaReceita();
+desenharCamposFormaNova();
 
 carregarReceitas();
