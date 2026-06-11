@@ -990,7 +990,7 @@ button:hover {
 .botao-calculadora-hero {
   position: absolute;
   top: 130px;
-  right: 34px;
+  right: 44px;
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -1002,6 +1002,25 @@ button:hover {
   font-size: 30px;
   box-shadow: 0 10px 22px rgba(94, 43, 19, 0.26);
   z-index: 3;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.botao-calculadora-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(94, 43, 19, 0.30);
+}
+
+.botao-calculadora-hero:active {
+  transform: scale(0.95);
+}
+
+.icone-calculadora {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
 }
 
 .grupo-forma-receita {
