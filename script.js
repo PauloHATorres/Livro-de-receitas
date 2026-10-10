@@ -3,6 +3,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbweuT445Xa1D77iz_DPaf4e
 let receitas = [];
 let receitaEditando = null;
 let mostrandoTodasFavoritas = false;
+let mostrandoTodasReceitas = false;
 
 const listaReceitas = document.getElementById("listaReceitas");
 const listaFavoritas = document.getElementById("listaFavoritas");
@@ -62,7 +63,8 @@ async function carregarReceitas() {
     aplicarFiltros();
   } catch (erro) {
     console.error(erro);
-    listaFavoritas.innerHTML = "<p class='mensagem-lista'>Erro ao carregar favoritas.</p>";
+    listaFavoritas.innerHTML = "<p class='mensagem-lista'>Não foi possível carregar suas receitas. <button type='button' class='btn-tentar-novamente'>Tentar novamente</button></p>";
+    listaFavoritas.querySelector("button").addEventListener("click", carregarReceitas);
     listaReceitas.innerHTML = "<p class='mensagem-lista'>Erro ao carregar receitas.</p>";
   }
 }
@@ -73,8 +75,12 @@ function aplicarFiltros() {
   const avaliacaoSelecionada = Number(filtroAvaliacao.value || 0);
 
   const temFiltroAtivo = termo || favoritaSelecionada || avaliacaoSelecionada;
+  const resumo = [favoritaSelecionada ? "Apenas favoritas" : "", avaliacaoSelecionada ? `${avaliacaoSelecionada} estrelas ou mais` : ""].filter(Boolean);
+  document.getElementById("resumoFiltros").textContent = resumo.join(" · ");
+  document.getElementById("btnLimparFiltros").classList.toggle("escondido", !temFiltroAtivo);
+  document.getElementById("btnTodasReceitas").setAttribute("aria-pressed", String(mostrandoTodasReceitas));
 
-  if (temFiltroAtivo) {
+  if (temFiltroAtivo || mostrandoTodasReceitas) {
     const filtradas = receitas.filter((receita) => {
       const titulo = String(receita.Título || "").toLowerCase();
       const categorias = String(receita.Categorias || "").toLowerCase();
@@ -153,6 +159,8 @@ function mostrarResultadoBusca(lista) {
   secaoFavoritas.classList.add("escondido");
   secaoRecentes.classList.add("escondido");
 
+  document.getElementById("tituloResultados").textContent = `${mostrandoTodasReceitas && !busca.value && !filtroFavorita.value && !filtroAvaliacao.value ? "Todas as receitas" : "Resultados da busca"} (${lista.length})`;
+
   if (lista.length === 0) {
     listaBusca.innerHTML = "<p class='mensagem-lista'>Nenhuma receita encontrada.</p>";
     return;
@@ -165,75 +173,75 @@ function mostrarResultadoBusca(lista) {
   });
 }
 
+const iconeCoracao = '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.7 4.9a5.2 5.2 0 0 0-7.4 0L12 6.2l-1.3-1.3a5.2 5.2 0 0 0-7.4 7.4L12 21l8.7-8.7a5.2 5.2 0 0 0 0-7.4Z"/></svg>';
+const iconePrato = '<svg aria-hidden="true" viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="10"/><path d="M3 9v12m4-12v12m-4-5h4M5 21v18M44 9v30m-4-30v16h4"/></svg>';
+
+function prepararFotos(container) {
+  container.querySelectorAll("img").forEach(img => {
+    img.addEventListener("error", () => {
+      if (img.classList.contains("foto-detalhe")) { img.remove(); return; }
+      const alternativa = document.createElement("div");
+      alternativa.className = `sem-foto ${container.classList.contains("receita-recente") ? "sem-foto-recente" : ""}`;
+      alternativa.innerHTML = `${iconePrato}<small>Foto indisponível</small>`;
+      img.replaceWith(alternativa);
+    }, { once: true });
+  });
+}
+
+function criarBotaoFavorito(receita, classe = "") {
+  const botao = document.createElement("button");
+  const favorita = receita.Favorita === "Sim";
+  botao.type = "button";
+  botao.className = `btn-favorito ${classe} ${favorita ? "ativo" : ""}`;
+  botao.setAttribute("aria-pressed", String(favorita));
+  botao.setAttribute("aria-label", `Favoritar ${receita.Título || "receita"}`);
+  botao.dataset.receitaId = String(receita.ID);
+  botao.innerHTML = iconeCoracao;
+  botao.addEventListener("click", event => alternarFavorito(event, receita.ID));
+  return botao;
+}
+
 function criarCardFavorita(receita) {
   const card = document.createElement("article");
   card.className = "receita-card";
-
-  const favorita = receita.Favorita === "Sim";
-
-  card.innerHTML = `
-    <div class="card-foto">
-      ${
-        receita.Foto
-          ? `<img src="${receita.Foto}" alt="${receita.Título || "Receita"}">`
-          : `<div class="sem-foto">🍽️</div>`
-      }
-
-      <button 
-        class="btn-favorito ${favorita ? "ativo" : ""}" 
-        onclick="alternarFavorito(event, '${receita.ID}')"
-        title="Favoritar receita"
-        type="button"
-      >
-        ${favorita ? "♥" : "♡"}
-      </button>
-    </div>
-
+  const abrir = document.createElement("button");
+  abrir.type = "button";
+  abrir.className = "abrir-card";
+  abrir.setAttribute("aria-label", `Abrir ${receita.Título || "receita"}`);
+  abrir.innerHTML = `
+    <div class="card-foto">${receita.Foto
+      ? `<img src="${escaparHTML(receita.Foto)}" alt="${escaparHTML(receita.Título || "Receita")}" loading="lazy">`
+      : `<div class="sem-foto">${iconePrato}<small>Sem foto</small></div>`}</div>
     <div class="receita-info">
-      <h3>${receita.Título || "Sem título"}</h3>
-      <p>◷ ${receita["Tempo Medio"] || "Tempo não informado"}</p>
+      <h3>${escaparHTML(receita.Título || "Sem título")}</h3>
+      ${receita["Tempo Medio"] ? `<p class="tempo-card">${escaparHTML(receita["Tempo Medio"])}</p>` : ""}
       ${criarTags(receita.Categorias)}
-    </div>
-  `;
-
-  card.addEventListener("click", () => abrirReceita(receita));
+      ${receita["Origem/Autor"] ? `<p class="autor-card">${escaparHTML(receita["Origem/Autor"])}</p>` : ""}
+    </div>`;
+  abrir.addEventListener("click", () => abrirReceita(receita));
+  card.append(abrir, criarBotaoFavorito(receita));
+  prepararFotos(card);
   return card;
 }
 
 function criarItemRecente(receita) {
   const item = document.createElement("article");
   item.className = "receita-recente";
-
-  const favorita = receita.Favorita === "Sim";
-  const descricao = receita.Observações || receita.Categorias || "Receita guardada com carinho.";
-
-  item.innerHTML = `
-    ${
-      receita.Foto
-        ? `<img src="${receita.Foto}" alt="${receita.Título || "Receita"}">`
-        : `<div class="sem-foto sem-foto-recente">🍽️</div>`
-    }
-
-    <div class="recente-conteudo">
-      <h3>${receita.Título || "Sem título"}</h3>
-      <p>${descricao}</p>
-    </div>
-
-    <div class="recente-info">
-      <span>◷ ${receita["Tempo Medio"] || "—"}</span>
-
-      <button 
-        class="btn-favorito btn-favorito-recente ${favorita ? "ativo" : ""}" 
-        onclick="alternarFavorito(event, '${receita.ID}')"
-        title="Favoritar receita"
-        type="button"
-      >
-        ${favorita ? "♥" : "♡"}
-      </button>
-    </div>
-  `;
-
-  item.addEventListener("click", () => abrirReceita(receita));
+  const abrir = document.createElement("button");
+  abrir.type = "button";
+  abrir.className = "abrir-recente";
+  abrir.setAttribute("aria-label", `Abrir ${receita.Título || "receita"}`);
+  const descricao = [receita.Categorias, receita["Origem/Autor"]].filter(Boolean).join(" · ") || "Receita guardada com carinho.";
+  abrir.innerHTML = `${receita.Foto
+    ? `<img src="${escaparHTML(receita.Foto)}" alt="${escaparHTML(receita.Título || "Receita")}" loading="lazy">`
+    : `<div class="sem-foto sem-foto-recente">${iconePrato}</div>`}
+    <div class="recente-conteudo"><h3>${escaparHTML(receita.Título || "Sem título")}</h3>
+      <p>${escaparHTML(descricao)}</p>
+      ${receita["Tempo Medio"] ? `<p class="tempo-recente">${escaparHTML(receita["Tempo Medio"])}</p>` : ""}
+    </div>`;
+  abrir.addEventListener("click", () => abrirReceita(receita));
+  item.append(abrir, criarBotaoFavorito(receita, "btn-favorito-recente"));
+  prepararFotos(item);
   return item;
 }
 
@@ -264,7 +272,7 @@ function criarTags(categorias) {
     .split(",")
     .map(categoria => categoria.trim())
     .filter(categoria => categoria)
-    .map(categoria => `<span class="tag">${categoria}</span>`)
+    .map(categoria => `<span class="tag">${escaparHTML(categoria)}</span>`)
     .join("");
 }
 
@@ -280,9 +288,15 @@ async function alternarFavorito(event, id) {
 
   const valorAntigo = receita.Favorita;
   const novoValor = receita.Favorita === "Sim" ? "Não" : "Sim";
+  const listaOrigem = event.currentTarget.closest("section");
+  function restaurarFocoFavorito() {
+    const botao = [...(listaOrigem?.querySelectorAll(".btn-favorito") || [])].find(el => el.dataset.receitaId === String(id));
+    (botao || busca).focus();
+  }
 
   receita.Favorita = novoValor;
   aplicarFiltros();
+  restaurarFocoFavorito();
 
   try {
     const resposta = await fetch(API_URL, {
@@ -299,69 +313,49 @@ async function alternarFavorito(event, id) {
     if (dados.status !== "ok") {
       receita.Favorita = valorAntigo;
       aplicarFiltros();
+      restaurarFocoFavorito();
       alert("Erro ao atualizar favorito: " + dados.mensagem);
     }
   } catch (erro) {
     console.error(erro);
     receita.Favorita = valorAntigo;
     aplicarFiltros();
+    restaurarFocoFavorito();
     alert("Erro ao conectar com a planilha.");
   }
 }
 
 function abrirReceita(receita) {
-  const avaliacao = Number(receita.Avaliação || 0);
-  const estrelas = avaliacao > 0 ? "★".repeat(avaliacao) : "Não informada";
-
+  const avaliacao = Math.min(5, Math.max(0, Number(receita.Avaliação) || 0));
+  const dados = [["Tempo", receita["Tempo Medio"]], ["Rendimento", receita.Rendimento], ["Avaliação", avaliacao ? "★".repeat(avaliacao) : ""], ["Origem/Autor", receita["Origem/Autor"]]].filter(([, valor]) => valor);
+  const ingredientes = String(receita.Ingredientes || "").split(/\n/).filter(linha => linha.trim());
   detalhesReceita.innerHTML = `
     <div class="receita-detalhe">
-      ${
-        receita.Foto
-          ? `<img src="${receita.Foto}" alt="${receita.Título || "Receita"}">`
-          : `<div class="sem-foto detalhe-sem-foto">🍽️</div>`
-      }
-
-      <h2>${receita.Título || "Sem título"}</h2>
-
-      ${
-        receita.Favorita === "Sim"
-          ? `<p class="favorita">♥ Receita favorita</p>`
-          : ""
-      }
-
-      <div class="detalhes-grid">
-        <p><strong>Tempo:</strong><br>${receita["Tempo Medio"] || "Não informado"}</p>
-        <p><strong>Rendimento:</strong><br>${receita.Rendimento || "Não informado"}</p>
-        <p><strong>Avaliação:</strong><br>${estrelas}</p>
-        <p><strong>Origem/Autor:</strong><br>${receita["Origem/Autor"] || "Não informado"}</p>
-      </div>
-
+      <h2 id="tituloReceitaDetalhe" tabindex="-1">${escaparHTML(receita.Título || "Sem título")}</h2>
+      ${receita.Favorita === "Sim" ? '<p class="favorita">♡ Receita favorita</p>' : ""}
+      ${dados.length ? `<div class="detalhes-grid">${dados.map(([nome, valor]) => `<p><strong>${nome}</strong><br>${escaparHTML(valor)}</p>`).join("")}</div>` : ""}
       ${gerarResumoFormaReceitaHTML(receita)}
-
-      <p><strong>Categorias:</strong> ${receita.Categorias || "Sem categoria"}</p>
-
-      <h3>Ingredientes</h3>
-      <p>${formatarTexto(receita.Ingredientes)}</p>
-
-      <h3>Modo de Preparo</h3>
-      <p>${formatarTexto(receita["Modo de Preparo"])}</p>
-
-      <h3>Observações</h3>
-      <p>${formatarTexto(receita.Observações || "Sem observações")}</p>
-
-      <div class="acoes-receita">
-        <button class="btn-editar" onclick="baixarReceitaPDF('${receita.ID}')">
-          📄 Baixar PDF
-        </button>
-
-        <button class="btn-editar" onclick="abrirFormularioEdicao('${receita.ID}')">
-          Editar Receita
-        </button>
+      ${receita.Categorias ? `<p class="categorias-detalhe">${escaparHTML(receita.Categorias)}</p>` : ""}
+      ${receita.Foto ? `<img class="foto-detalhe" src="${escaparHTML(receita.Foto)}" alt="${escaparHTML(receita.Título || "Receita")}">` : ""}
+      <div class="leitura-receita">
+        <section class="ingredientes-detalhe"><h3>Ingredientes</h3>
+          <p class="ajuda-campo">Marque o que já separou. As marcações valem enquanto esta receita estiver aberta.</p>
+          ${ingredientes.map(linha => `<label class="ingrediente-check"><input type="checkbox"><span>${escaparHTML(linha)}</span></label>`).join("") || '<p>Ingredientes não informados.</p>'}
+        </section>
+        <section class="preparo-detalhe"><h3>Modo de Preparo</h3><div class="texto-preparo">${formatarTexto(receita["Modo de Preparo"])}</div></section>
       </div>
-    </div>
-  `;
-
-  modalReceita.classList.remove("escondido");
+      ${receita.Observações ? `<section class="observacoes-detalhe"><h3>Observações</h3><p>${formatarTexto(receita.Observações)}</p></section>` : ""}
+      <div class="acoes-receita">
+        <button class="btn-editar" id="btnPDFDetalhe" type="button">Baixar PDF</button>
+        <button class="btn-editar" id="btnAjustarDetalhe" type="button">Ajustar receita</button>
+        <button class="btn-editar" id="btnEditarDetalhe" type="button">Editar Receita</button>
+      </div>
+    </div>`;
+  prepararFotos(detalhesReceita);
+  document.getElementById("btnPDFDetalhe").addEventListener("click", () => baixarReceitaPDF(receita.ID));
+  document.getElementById("btnEditarDetalhe").addEventListener("click", () => abrirFormularioEdicao(receita.ID));
+  document.getElementById("btnAjustarDetalhe").addEventListener("click", () => abrirCalculadora(receita.ID));
+  abrirDialogo(modalReceita);
 }
 
 function abrirFormularioNovaReceita() {
@@ -372,7 +366,8 @@ function abrirFormularioNovaReceita() {
   document.querySelector("#modalFormulario h2").textContent = "Nova Receita";
   formReceita.querySelector('button[type="submit"]').textContent = "Salvar Receita";
 
-  modalFormulario.classList.remove("escondido");
+  registrarEstadoFormulario();
+  abrirDialogo(modalFormulario);
 }
 
 function abrirFormularioEdicao(id) {
@@ -401,13 +396,14 @@ function abrirFormularioEdicao(id) {
   document.querySelector("#modalFormulario h2").textContent = "Editar Receita";
   formReceita.querySelector('button[type="submit"]').textContent = "Salvar Alterações";
 
-  modalReceita.classList.add("escondido");
-  modalFormulario.classList.remove("escondido");
+  fecharDialogo(modalReceita);
+  registrarEstadoFormulario();
+  abrirDialogo(modalFormulario);
 }
 
 function formatarTexto(texto) {
   if (!texto) return "";
-  return String(texto).replace(/\n/g, "<br>");
+  return escaparHTML(texto).replace(/\n/g, "<br>");
 }
 
 function converterImagemParaBase64(arquivo) {
@@ -654,12 +650,16 @@ function preencherCamposFormaReceita(receita) {
   document.getElementById("formaAltura").value = forma.altura;
 }
 
-function abrirCalculadora() {
+function abrirCalculadora(id) {
   preencherReceitasCalculadora();
+  if (id !== undefined) {
+    const index = receitas.findIndex(receita => String(receita.ID) === String(id));
+    selectReceitaCalculadora.value = index >= 0 ? String(index) : "";
+  }
   rendimentoNovoCalc.value = "";
   desenharCamposFormaNova();
   atualizarInfoCalculadora();
-  modalCalculadora.classList.remove("escondido");
+  abrirDialogo(modalCalculadora);
 }
 
 function preencherReceitasCalculadora() {
@@ -682,6 +682,7 @@ function preencherReceitasCalculadora() {
 }
 
 function obterReceitaCalculadoraSelecionada() {
+  if (selectReceitaCalculadora.value === "") return null;
   const index = Number(selectReceitaCalculadora.value);
   if (!Number.isInteger(index) || index < 0) return null;
   return receitas[index] || null;
@@ -944,6 +945,7 @@ function calcularAjusteForma() {
 
 btnFiltros.addEventListener("click", () => {
   painelFiltros.classList.toggle("escondido");
+  btnFiltros.setAttribute("aria-expanded", String(!painelFiltros.classList.contains("escondido")));
 });
 
 btnVerTodasFavoritas.addEventListener("click", () => {
@@ -957,28 +959,13 @@ filtroAvaliacao.addEventListener("change", aplicarFiltros);
 
 btnNovaReceita.addEventListener("click", abrirFormularioNovaReceita);
 
-fecharFormulario.addEventListener("click", () => {
-  modalFormulario.classList.add("escondido");
-  receitaEditando = null;
-  formReceita.reset();
+fecharFormulario.addEventListener("click", fecharFormularioComCuidado);
+fecharModal.addEventListener("click", () => fecharDialogo(modalReceita));
+modalReceita.addEventListener("click", event => {
+  if (event.target === modalReceita) fecharDialogo(modalReceita);
 });
-
-fecharModal.addEventListener("click", () => {
-  modalReceita.classList.add("escondido");
-});
-
-modalReceita.addEventListener("click", (e) => {
-  if (e.target === modalReceita) {
-    modalReceita.classList.add("escondido");
-  }
-});
-
-modalFormulario.addEventListener("click", (e) => {
-  if (e.target === modalFormulario) {
-    modalFormulario.classList.add("escondido");
-    receitaEditando = null;
-    formReceita.reset();
-  }
+modalFormulario.addEventListener("click", event => {
+  if (event.target === modalFormulario) fecharFormularioComCuidado();
 });
 
 btnLerReceitaIA.addEventListener("click", async () => {
@@ -1094,7 +1081,8 @@ formReceita.addEventListener("submit", async (e) => {
       alert(receitaEditando ? "Receita editada com sucesso!" : "Receita salva com sucesso!");
 
       formReceita.reset();
-      modalFormulario.classList.add("escondido");
+      registrarEstadoFormulario();
+      fecharDialogo(modalFormulario);
       receitaEditando = null;
 
       await carregarReceitas();
@@ -1117,15 +1105,15 @@ formReceita.addEventListener("submit", async (e) => {
 
 tipoFormaReceita.addEventListener("change", desenharCamposFormaReceita);
 
-btnCalculadora.addEventListener("click", abrirCalculadora);
+btnCalculadora.addEventListener("click", () => abrirCalculadora());
 
 fecharCalculadora.addEventListener("click", () => {
-  modalCalculadora.classList.add("escondido");
+  fecharDialogo(modalCalculadora);
 });
 
 modalCalculadora.addEventListener("click", (e) => {
   if (e.target === modalCalculadora) {
-    modalCalculadora.classList.add("escondido");
+    fecharDialogo(modalCalculadora);
   }
 });
 
@@ -1137,6 +1125,84 @@ tipoFormaNova.addEventListener("change", desenharCamposFormaNova);
 document.querySelectorAll(".calc-opcao").forEach(botao => {
   botao.addEventListener("click", () => trocarModoCalculadora(botao.dataset.modo));
 });
+
+let estadoInicialFormulario = "";
+const pilhaDialogos = [];
+
+function estadoFormulario() {
+  return JSON.stringify([...formReceita.querySelectorAll("input, textarea, select")].map(campo => [campo.id, campo.type === "file" ? [...campo.files].map(arquivo => [arquivo.name, arquivo.size, arquivo.lastModified]) : campo.value]));
+}
+function registrarEstadoFormulario() {
+  estadoInicialFormulario = estadoFormulario();
+  document.getElementById("avisoDescartar").classList.add("escondido");
+}
+function formularioAlterado() { return estadoFormulario() !== estadoInicialFormulario; }
+function formularioOcupado() { return btnLerReceitaIA.disabled || formReceita.querySelector('button[type="submit"]').disabled; }
+function fecharFormularioComCuidado() {
+  if (formularioOcupado()) return;
+  if (formularioAlterado()) {
+    document.getElementById("avisoDescartar").classList.remove("escondido");
+    modalFormulario.querySelector(".modal-conteudo").scrollTop = 0;
+    document.getElementById("btnContinuarEdicao").focus();
+    return;
+  }
+  descartarFormulario();
+}
+function descartarFormulario() {
+  if (formularioOcupado()) return;
+  fecharDialogo(modalFormulario);
+  receitaEditando = null;
+  formReceita.reset();
+  registrarEstadoFormulario();
+}
+function sincronizarDialogos() {
+  const topo = pilhaDialogos.at(-1)?.modal;
+  document.querySelector(".app-shell").inert = Boolean(topo);
+  [modalReceita, modalFormulario, modalCalculadora].forEach(modal => { modal.inert = modal !== topo; });
+  document.body.classList.toggle("dialogo-aberto", Boolean(topo));
+}
+function abrirDialogo(modal) {
+  if (!pilhaDialogos.some(item => item.modal === modal)) pilhaDialogos.push({ modal, origem: document.activeElement });
+  modal.classList.remove("escondido");
+  sincronizarDialogos();
+  modal.querySelector(".modal-conteudo").scrollTop = 0;
+  (modal.querySelector("h2") || modal.querySelector("button")).setAttribute("tabindex", "-1");
+  (modal.querySelector("h2") || modal.querySelector("button")).focus();
+}
+function fecharDialogo(modal) {
+  const index = pilhaDialogos.findIndex(item => item.modal === modal);
+  const item = index >= 0 ? pilhaDialogos.splice(index, 1)[0] : null;
+  modal.classList.add("escondido");
+  sincronizarDialogos();
+  const topo = pilhaDialogos.at(-1)?.modal;
+  if (item?.origem?.isConnected && !item.origem.closest(".escondido") && (!topo || topo.contains(item.origem))) item.origem.focus();
+  else if (topo) topo.querySelector("h2, button").focus();
+  else busca.focus();
+}
+document.addEventListener("keydown", event => {
+  const modal = pilhaDialogos.at(-1)?.modal;
+  if (!modal) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    if (modal === modalFormulario) fecharFormularioComCuidado(); else fecharDialogo(modal);
+  }
+  if (event.key !== "Tab") return;
+  const controles = [...modal.querySelectorAll('button, input, select, textarea, a[href], [tabindex="0"]')].filter(el => !el.disabled && el.getClientRects().length);
+  const primeiro = controles[0], ultimo = controles.at(-1);
+  if (!primeiro) return;
+  if (event.shiftKey && (document.activeElement === primeiro || !controles.includes(document.activeElement))) { event.preventDefault(); ultimo.focus(); }
+  else if (!event.shiftKey && (document.activeElement === ultimo || !controles.includes(document.activeElement))) { event.preventDefault(); primeiro.focus(); }
+});
+window.addEventListener("beforeunload", event => {
+  if (!modalFormulario.classList.contains("escondido") && (formularioAlterado() || formularioOcupado())) { event.preventDefault(); event.returnValue = ""; }
+});
+document.getElementById("btnTodasReceitas").addEventListener("click", () => { mostrandoTodasReceitas = !mostrandoTodasReceitas; aplicarFiltros(); });
+document.getElementById("btnLimparFiltros").addEventListener("click", () => { busca.value = ""; filtroFavorita.value = ""; filtroAvaliacao.value = ""; aplicarFiltros(); busca.focus(); });
+document.getElementById("btnContinuarEdicao").addEventListener("click", () => {
+  document.getElementById("avisoDescartar").classList.add("escondido");
+  document.getElementById("titulo").focus();
+});
+document.getElementById("btnDescartarEdicao").addEventListener("click", descartarFormulario);
 
 desenharCamposFormaReceita();
 desenharCamposFormaNova();
