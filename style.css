@@ -25,7 +25,7 @@ body {
   color: var(--marrom);
   background:
     linear-gradient(rgba(246, 223, 196, 0.80), rgba(229, 192, 157, 0.82)),
-    url("assets/fundo-papel.jpg");
+    url("assets/fundo-papel.png");
   background-size: cover;
   background-attachment: fixed;
   background-position: center;
@@ -39,7 +39,7 @@ body {
   width: min(100%, 1050px);
   margin: 24px auto;
   padding: 42px 44px 100px;
-  background:url("assets/fundo-papel.jpg") center/cover,
+  background:url("assets/fundo-papel.png") center/cover,
     #fff8ef;
   border: 1px solid rgba(255,255,255,0.7);
   border-radius: 34px;
@@ -613,7 +613,7 @@ button:hover {
   body {
     background:
       linear-gradient(rgba(246, 223, 196, 0.86), rgba(229, 192, 157, 0.88)),
-      url("assets/fundo-papel.jpg");
+      url("assets/fundo-papel.png");
     background-size: cover;
     background-position: center;
     background-attachment: scroll;
@@ -1185,4 +1185,154 @@ button:hover {
   .linha-tabela {
     grid-template-columns: 1fr;
   }
+}
+
+/* Refinamento do caderno: mesma identidade, leitura e ações mais claras. */
+:root {
+  --marrom-claro: #795740;
+  --borda: rgba(80, 45, 22, 0.18);
+}
+body {
+  background: linear-gradient(rgba(246, 223, 196, .94), rgba(229, 192, 157, .95)), url("assets/fundo-papel.png") center/cover;
+}
+.app-shell { padding: 34px 42px 114px; background: linear-gradient(rgba(255, 248, 239, .97), rgba(255, 248, 239, .97)), url("assets/fundo-papel.png") center/cover; }
+.app-shell::before { display: none; }
+.hero { min-height: 0; padding: 12px 96px 0; margin-bottom: 26px; }
+.titulo-app h1 { font-size: clamp(40px, 5.5vw, 62px); line-height: 1.08; }
+.titulo-app span { font-size: 50px; margin-top: 3px; }
+.titulo-app p { font-size: 12px; letter-spacing: 2px; margin-top: 8px; }
+.avatar-livro { width: 86px; height: 86px; right: 0; box-shadow: 0 5px 14px rgba(74, 43, 20, .12); }
+.ornamento-hero { margin-top: 14px; }
+.ferramentas-livro { position: relative; z-index: 1; display: flex; align-items: stretch; gap: 12px; margin-bottom: 12px; }
+.busca-box { flex: 1; min-width: 0; height: 60px; max-width: none; margin: 0; padding: 0 16px; border-radius: 14px; gap: 12px; box-shadow: none; }
+.busca-box input { min-width: 0; padding: 8px 0; font-size: 16px; }
+.busca-box input::placeholder { color: var(--marrom-claro); }
+.icone-busca { flex-shrink: 0; width: 22px; height: 22px; fill: none; stroke: var(--marrom-claro); stroke-width: 1.7; }
+.busca-box button { font-size: 14px; color: var(--terracota-escuro); min-height: 44px; padding: 0 0 0 14px; font-weight: 600; }
+.botao-calculadora-hero { position: static; width: auto; height: auto; min-height: 44px; flex-shrink: 0; border-radius: 14px; padding: 0 14px; gap: 8px; background: #fffaf4; color: var(--terracota-escuro); border: 1px solid var(--borda); font-size: 14px; font-weight: 600; box-shadow: none; }
+.botao-calculadora-hero:hover { box-shadow: none; }
+.icone-calculadora { width: 32px; height: 32px; background: var(--terracota); border-radius: 50%; }
+.painel-filtros { max-width: none; margin: 18px 0 10px; }
+.painel-filtros label { font-size: 13px; font-weight: 600; line-height: 1.6; }
+.painel-filtros select { margin-top: 4px; }
+.acervo-controles { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; }
+.acervo-controles button { background: transparent; color: var(--terracota-escuro); min-height: 44px; font-weight: 600; padding: 4px 0; }
+.acervo-controles button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 5px; }
+#resumoFiltros { color: var(--marrom-claro); }
+.secao { margin-top: 24px; }
+.secao-topo { margin-bottom: 16px; gap: 12px; }
+.secao-topo h2 { font-size: 29px; }
+.btn-ver-todas { color: var(--terracota-escuro); min-height: 44px; }
+.receita-card { position: relative; border-radius: 16px; box-shadow: none; cursor: default; }
+.receita-card:hover { transform: none; box-shadow: none; }
+.abrir-card { display: block; width: 100%; padding: 0; background: transparent; text-align: left; border-radius: 16px; }
+.abrir-card:hover, .abrir-recente:hover { transform: none; }
+.receita-card img, .sem-foto { height: 160px; }
+.sem-foto { flex-direction: column; gap: 8px; background: #f2dfca; color: #916b4f; }
+.sem-foto svg { width: 42px; height: 42px; fill: none; stroke: currentColor; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+.sem-foto small { font-size: 11px; }
+.receita-info { padding: 16px 18px 18px; }
+.receita-info h3 { font-size: 25px; line-height: 1.2; margin-bottom: 8px; overflow-wrap: anywhere; }
+.receita-info p { font-size: 13px; margin-bottom: 0; }
+.receita-info .autor-card { margin-top: 10px; font-size: 12px; }
+.tag { margin-top: 8px; padding: 4px 9px; }
+.btn-favorito { width: 44px; min-width: 44px; height: 44px; padding: 11px; box-shadow: none; }
+.btn-favorito svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+.btn-favorito.ativo { background: #fff7ed; color: var(--terracota-escuro); }
+.btn-favorito.ativo svg { fill: currentColor; }
+.receita-card > .btn-favorito, .favoritas-grid .btn-favorito { position: absolute; top: 8px; right: 8px; bottom: auto; }
+.recentes-lista { gap: 12px; }
+.receita-recente { grid-template-columns: minmax(0, 1fr) 44px; gap: 10px; padding-right: 12px; align-items: center; box-shadow: none; border-radius: 14px; cursor: default; }
+.receita-recente:hover { transform: none; }
+.abrir-recente { display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; padding: 0; text-align: left; background: transparent; }
+.abrir-recente > img, .abrir-recente > .sem-foto-recente { width: 100px; height: 112px; }
+.recente-conteudo { min-width: 0; padding: 12px 0; }
+.recente-conteudo h3 { font-size: 24px; line-height: 1.2; overflow-wrap: anywhere; }
+.recente-conteudo p { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.recente-conteudo .tempo-recente { font-size: 12px; margin-top: 6px; }
+.botao-flutuante, #btnNovaReceita { width: auto; height: auto; min-height: 52px; padding: 12px 20px; gap: 8px; border-radius: 14px; font-size: 15px; background: var(--terracota-escuro); }
+.botao-flutuante span { font-size: 25px; font-weight: 400; }
+button { min-height: 44px; }
+button:hover { transform: none; }
+button:disabled { cursor: wait; opacity: .65; }
+:is(button, input, textarea, select, a):focus-visible { outline: 3px solid var(--terracota-escuro); outline-offset: 3px; }
+.abrir-card:focus-visible { outline-offset: -4px; }
+.modal h2[tabindex="-1"]:focus { outline: none; }
+input, textarea, select { font-family: inherit; }
+input::placeholder, textarea::placeholder { color: var(--marrom-claro); opacity: 1; }
+::selection { background: #ead0b3; color: var(--marrom); }
+input { caret-color: var(--terracota-escuro); }
+body.dialogo-aberto { overflow: hidden; }
+.modal-conteudo { padding: 32px; max-height: calc(100dvh - 44px); overscroll-behavior: contain; }
+.modal-conteudo > h2, .receita-detalhe h2 { padding-right: 48px; overflow-wrap: anywhere; }
+.fechar { width: 44px; height: 44px; min-height: 44px; position: sticky; top: 0; float: right; margin: -8px -8px 0 8px; z-index: 4; }
+.receita-detalhe h2 { font-size: 38px; line-height: 1.15; }
+.receita-detalhe .foto-detalhe { max-height: 220px; margin: 18px 0 0; border-radius: 14px; }
+.detalhes-grid { display: flex; flex-wrap: wrap; gap: 12px 24px; border-block: 1px solid var(--borda); padding: 14px 0; margin: 18px 0; }
+.detalhes-grid p { background: none; padding: 0; border: 0; border-radius: 0; margin: 0; font-size: 14px; }
+.categorias-detalhe { font-size: 13px; color: var(--marrom-claro) !important; }
+.leitura-receita { display: grid; grid-template-columns: .85fr 1.2fr; gap: 32px; margin-top: 22px; }
+.leitura-receita h3 { margin-top: 0; }
+.ingrediente-check { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; line-height: 1.65; cursor: pointer; }
+.ingrediente-check input { flex-shrink: 0; width: 20px; height: 20px; margin-top: 3px; accent-color: var(--terracota-escuro); }
+.ingrediente-check:has(input:checked) span { text-decoration: line-through; color: var(--marrom-claro); }
+.texto-preparo { line-height: 1.85; white-space: normal; overflow-wrap: anywhere; }
+.observacoes-detalhe { background: #f8ead8; padding: 16px 20px; border-radius: 14px; margin-top: 24px; }
+.observacoes-detalhe h3 { margin-top: 0; }
+.observacoes-detalhe p { margin-bottom: 0; }
+.acoes-receita { flex-wrap: wrap; }
+.acoes-receita .btn-editar { min-width: 130px; background: var(--terracota-escuro); }
+.label-campo { font-weight: 600; font-size: 14px; margin-bottom: -7px; margin-top: 6px; }
+.ajuda-campo { font-size: 12px; color: var(--marrom-claro) !important; line-height: 1.6; margin: 6px 0 12px; }
+.importar-ia { border: 1px solid var(--borda); border-radius: 14px; padding: 16px; }
+.importar-ia > label { font-weight: 600; font-size: 14px; }
+#formReceita button, .btn-calcular, .calc-opcao.ativa { background: var(--terracota-escuro); }
+#formReceita button { margin-top: 10px; }
+.btn-tentar-novamente { display: block; margin: 12px auto 0; padding: 8px 14px; border-radius: 12px; background: var(--terracota-escuro); color: var(--papel); }
+.aviso-descartar { padding: 16px; background: #f8ead8; border-radius: 14px; margin-bottom: 18px; }
+.aviso-descartar p { line-height: 1.6; margin-bottom: 12px; }
+.aviso-descartar div { display: flex; gap: 8px; flex-wrap: wrap; }
+.aviso-descartar button { padding: 10px 14px; border-radius: 10px; background: var(--terracota-escuro); color: var(--papel); font-weight: 600; }
+#btnDescartarEdicao { background: transparent; color: var(--terracota-escuro); }
+@media (max-width: 768px) {
+  body { background: #ead0b3; }
+  .app-shell { padding: 26px 20px 110px; }
+  .hero { text-align: left; padding: 0; min-height: 0; margin-bottom: 24px; }
+  .titulo-app h1 { font-size: 36px; max-width: 260px; margin: 0; padding-right: 32px; }
+  .titulo-app span { font-size: 37px; }
+  .titulo-app p { font-size: 10px; letter-spacing: 1.6px; max-width: none; margin: 8px 0 0; }
+  .avatar-livro { width: 58px; height: 58px; right: 0; }
+  .ornamento-hero { display: none; }
+  .ferramentas-livro { flex-wrap: wrap; gap: 10px; }
+  .busca-box { flex-basis: 100%; height: 58px; padding: 0 12px; gap: 9px; }
+  .busca-box input { font-size: 16px; }
+  .busca-box button { font-size: 13px; padding-left: 10px; }
+  .botao-calculadora-hero { position: static; padding: 6px 12px; font-size: 13px; width: auto; height: auto; }
+  .acervo-controles { font-size: 12px; gap: 0 14px; }
+  .secao-topo h2 { font-size: 27px; }
+  .favoritas-grid .receita-card { min-width: 178px; max-width: 178px; border-radius: 16px; }
+  .favoritas-grid .receita-card img, .favoritas-grid .sem-foto { height: 110px; }
+  .favoritas-grid .receita-info { padding: 14px; }
+  .favoritas-grid .receita-info h3 { font-size: 21px; line-height: 1.2; }
+  .favoritas-grid .btn-favorito, .btn-favorito-recente { min-width: 44px; width: 44px; height: 44px; }
+  .favoritas-grid .tag { display: inline-block; font-size: 11px; }
+  .receita-recente { grid-template-columns: minmax(0, 1fr) 44px; min-height: 104px; gap: 6px; padding-right: 7px; }
+  .abrir-recente { grid-template-columns: 76px minmax(0, 1fr); gap: 12px; }
+  .abrir-recente > img, .abrir-recente > .sem-foto-recente { width: 76px; height: 104px; }
+  .recente-conteudo { padding: 10px 0; }
+  .recente-conteudo h3 { font-size: 21px; }
+  .recente-conteudo p { font-size: 12px; }
+  .botao-flutuante, #btnNovaReceita { right: 18px; bottom: max(18px, env(safe-area-inset-bottom)); font-size: 14px; padding: 10px 16px; }
+  .modal { padding: 12px; }
+  .modal-conteudo { padding: 24px 18px; border-radius: 18px; max-height: calc(100dvh - 24px); }
+  .modal-conteudo h2, .receita-detalhe h2 { font-size: 31px; }
+  .leitura-receita { grid-template-columns: 1fr; gap: 26px; }
+  .leitura-receita h3 { font-size: 27px; }
+  .texto-preparo { font-size: 16px; }
+  .acoes-receita { gap: 8px; }
+  .acoes-receita .btn-editar { font-size: 13px; }
+  .lista-receitas { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
 }

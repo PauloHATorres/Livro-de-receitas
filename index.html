@@ -22,9 +22,6 @@
         <img src="assets/avatar-mae.png" alt="Foto da dona do livro de receitas">
       </div>
 
-      <button id="btnCalculadora" class="botao-calculadora-hero" type="button" title="Ajustar receita">
-        <img src="assets/icone-medidor.png" alt="Ajustar receita" class="icone-calculadora">
-      </button>
 
       <div class="titulo-app">
         <h1>Livro de Receitas</h1>
@@ -39,26 +36,37 @@
       </div>
     </header>
 
-    <section class="busca-box">
-      <span class="icone-busca">🔍</span>
+    <div class="ferramentas-livro">
+    <section class="busca-box" aria-label="Buscar receitas">
+      <svg class="icone-busca" aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg>
 
       <input
         type="text"
         id="busca"
+        aria-label="Buscar receita, ingrediente ou categoria"
         placeholder="Buscar receita, ingrediente ou categoria..."
       >
 
-      <button id="btnFiltros" type="button" title="Filtros">
-        ☷
+      <button id="btnFiltros" type="button" aria-expanded="false" aria-controls="painelFiltros">
+        Filtros
       </button>
     </section>
 
+      <button id="btnCalculadora" class="botao-calculadora-hero" type="button" title="Ajustar receita">
+        <img src="assets/icone-medidor.png" alt="" class="icone-calculadora">
+        <span>Ajustar receita</span>
+      </button>
+    </div>
+
     <section id="painelFiltros" class="painel-filtros escondido">
+      <label for="filtroFavorita">Favoritas
       <select id="filtroFavorita">
         <option value="">Todas as receitas</option>
         <option value="Sim">♡ Apenas favoritas</option>
       </select>
 
+      </label>
+      <label for="filtroAvaliacao">Avaliação
       <select id="filtroAvaliacao">
         <option value="">Todas as avaliações</option>
         <option value="5">★★★★★</option>
@@ -67,11 +75,18 @@
         <option value="2">★★ ou mais</option>
         <option value="1">★ ou mais</option>
       </select>
+      </label>
     </section>
+
+    <div class="acervo-controles">
+      <button id="btnTodasReceitas" type="button" aria-pressed="false">Todas as receitas</button>
+      <div id="resumoFiltros" role="status"></div>
+      <button id="btnLimparFiltros" type="button" class="escondido">Limpar filtros</button>
+    </div>
 
     <section id="resultadoBusca" class="secao escondido">
       <div class="secao-topo">
-        <h2>Resultados da busca</h2>
+        <h2 id="tituloResultados">Resultados da busca</h2>
       </div>
 
       <section id="listaBusca" class="lista-receitas">
@@ -104,28 +119,37 @@
     </section>
 
     <button id="btnNovaReceita" class="botao-flutuante" type="button">
-      +
+      <span aria-hidden="true">+</span> Nova receita
     </button>
 
   </main>
 
-  <section id="modalReceita" class="modal escondido">
+  <section id="modalReceita" class="modal escondido" role="dialog" aria-modal="true" aria-labelledby="tituloReceitaDetalhe">
     <div class="modal-conteudo">
-      <button class="fechar" id="fecharModal" type="button">×</button>
+      <button class="fechar" id="fecharModal" type="button" aria-label="Fechar">×</button>
       <div id="detalhesReceita"></div>
     </div>
   </section>
 
-  <section id="modalFormulario" class="modal escondido">
+  <section id="modalFormulario" class="modal escondido" role="dialog" aria-modal="true" aria-labelledby="tituloFormulario">
     <div class="modal-conteudo">
-      <button class="fechar" id="fecharFormulario" type="button">×</button>
+      <button class="fechar" id="fecharFormulario" type="button" aria-label="Fechar">×</button>
 
-      <h2>Nova Receita</h2>
+      <h2 id="tituloFormulario">Nova Receita</h2>
+
+      <div id="avisoDescartar" class="aviso-descartar escondido" role="alert">
+        <p>Há alterações não salvas. Deseja continuar editando ou descartá-las?</p>
+        <div>
+          <button id="btnContinuarEdicao" type="button">Continuar editando</button>
+          <button id="btnDescartarEdicao" type="button">Descartar alterações</button>
+        </div>
+      </div>
 
       <form id="formReceita">
 
                 <div class="importar-ia">
-          <label>Tire uma foto do caderno e a IA preencherá os campos para você.</label>
+          <label for="fotoReceitaIA">Fotos do caderno para transcrever com IA</label>
+          <p class="ajuda-campo">Escolha uma ou mais fotos. Revise os campos preenchidos antes de salvar.</p>
 
           <input
             type="file"
@@ -142,18 +166,22 @@
           </button>
         </div>
 
+        <label for="titulo" class="label-campo">Título da receita</label>
         <input type="text" id="titulo" placeholder="Título da receita" required>
 
+        <label for="categorias" class="label-campo">Categorias</label>
         <input type="text" id="categorias" placeholder="Categorias. Ex: bolo, sobremesa">
 
+        <label for="tempoMedio" class="label-campo">Tempo médio</label>
         <input type="text" id="tempoMedio" placeholder="Tempo médio. Ex: 45 min">
 
+        <label for="rendimento" class="label-campo">Rendimento</label>
         <input type="text" id="rendimento" placeholder="Rendimento. Ex: 8 porções">
 
         <div class="grupo-forma-receita">
           <label class="label-bloco">Forma da receita (opcional)</label>
 
-          <select id="tipoFormaReceita">
+          <select id="tipoFormaReceita" aria-label="Tipo de forma da receita">
             <option value="">Sem forma cadastrada</option>
             <option value="retangular">Retangular / quadrada</option>
             <option value="redonda">Redonda</option>
@@ -162,19 +190,25 @@
           <div id="camposFormaReceita" class="campos-forma-receita escondido"></div>
         </div>
 
+        <label for="ingredientes" class="label-campo">Ingredientes</label>
         <textarea id="ingredientes" placeholder="Ingredientes" required></textarea>
 
+        <label for="modoPreparo" class="label-campo">Modo de preparo</label>
         <textarea id="modoPreparo" placeholder="Modo de preparo" required></textarea>
 
+        <label for="foto" class="label-campo">Foto da receita</label>
         <input type="file" id="foto" accept="image/*">
 
+        <label for="origemAutor" class="label-campo">Origem/Autor</label>
         <input type="text" id="origemAutor" placeholder="Origem/Autor. Ex: Mãe, Vó, Internet">
 
+        <label for="favorita" class="label-campo">Favorita</label>
         <select id="favorita">
           <option value="Não">Favorita? Não</option>
           <option value="Sim">Favorita? Sim</option>
         </select>
 
+        <label for="avaliacao" class="label-campo">Avaliação</label>
         <select id="avaliacao">
           <option value="">Avaliação</option>
           <option value="1">★</option>
@@ -184,6 +218,7 @@
           <option value="5">★★★★★</option>
         </select>
 
+        <label for="observacoes" class="label-campo">Observações</label>
         <textarea id="observacoes" placeholder="Observações"></textarea>
 
         <button type="submit">
@@ -194,11 +229,11 @@
   </section>
 
 
-  <section id="modalCalculadora" class="modal escondido">
+  <section id="modalCalculadora" class="modal escondido" role="dialog" aria-modal="true" aria-labelledby="tituloCalculadora">
     <div class="modal-conteudo modal-calculadora">
-      <button class="fechar" id="fecharCalculadora" type="button">×</button>
+      <button class="fechar" id="fecharCalculadora" type="button" aria-label="Fechar">×</button>
 
-      <h2>Calculadora de Receita</h2>
+      <h2 id="tituloCalculadora">Calculadora de Receita</h2>
       <p class="texto-ajuda-calculadora">
         Escolha uma receita e ajuste os ingredientes por rendimento ou pelo volume da forma cadastrada.
       </p>
@@ -238,7 +273,7 @@
         </div>
 
         <h3>Forma nova</h3>
-        <select id="tipoFormaNova">
+        <select id="tipoFormaNova" aria-label="Tipo de forma nova">
           <option value="retangular">Retangular / quadrada</option>
           <option value="redonda">Redonda</option>
         </select>
@@ -250,7 +285,7 @@
         </button>
       </div>
 
-      <div id="resultadoCalculadora" class="resultado-calculadora escondido"></div>
+      <div id="resultadoCalculadora" class="resultado-calculadora escondido" role="status"></div>
     </div>
   </section>
 
